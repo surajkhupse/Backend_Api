@@ -1,16 +1,11 @@
+import { getOpenApiServers } from './openapi-settings';
+
 /**
  * Base OpenAPI document merged with `@openapi` blocks in route files.
  * Add/reuse schemas here. HTTP paths and operations are defined in `routes/*` with `@openapi` (swagger-jsdoc).
+ * Server URLs come from `openapi-settings.ts` (PORT / SWAGGER_BASE_URL).
  */
 export function getOpenApiTemplate(): Record<string, unknown> {
-  const port = process.env.PORT || 5000;
-  const servers = process.env.SWAGGER_BASE_URL
-    ? [{ url: process.env.SWAGGER_BASE_URL, description: 'API server' }]
-    : [
-        { url: `http://127.0.0.1:${port}`, description: 'Local (127.0.0.1)' },
-        { url: `http://localhost:${port}`, description: 'Local (localhost)' },
-      ];
-
   return {
     openapi: '3.0.3',
     info: {
@@ -19,7 +14,7 @@ export function getOpenApiTemplate(): Record<string, unknown> {
       description:
         'REST API for event records in MongoDB. Accounts: JWT + refresh, sessions, audit logs (`GET /api/auth/audit-logs`), Google SSO, password reset, account lockout; Events CRUD.',
     },
-    servers,
+    servers: getOpenApiServers(),
     tags: [
       { name: 'Events', description: 'Event list, create, delete' },
       {

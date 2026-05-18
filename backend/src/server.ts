@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import connectDB from './database/connection';
+import { getApiPort } from './config/openapi-settings';
 import { buildOpenApiSpec } from './config/openapi';
 import { createApp } from './app';
 
@@ -9,7 +10,7 @@ void connectDB();
 const swaggerDocument = buildOpenApiSpec();
 const app = createApp(swaggerDocument);
 
-const PORT = process.env.PORT || 5000;
+const PORT = getApiPort();
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

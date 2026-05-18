@@ -1,7 +1,9 @@
 import express from 'express';
 import { createEvent, getEvents, deleteEvent } from './events.controller';
+import { authenticate } from '../../shared/middleware/authenticate';
 
 const router = express.Router();
+router.use(authenticate);
 
 /**
  * @openapi
@@ -10,6 +12,8 @@ const router = express.Router();
  *     tags: [Events]
  *     summary: List all events
  *     operationId: getEvents
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Array of events
@@ -23,10 +27,14 @@ const router = express.Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Missing or invalid Bearer token
  *   post:
  *     tags: [Events]
  *     summary: Create an event
  *     operationId: createEvent
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -46,6 +54,8 @@ const router = express.Router();
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Missing or invalid Bearer token
  */
 router.get('/', getEvents);
 router.post('/', createEvent);
@@ -57,6 +67,8 @@ router.post('/', createEvent);
  *     tags: [Events]
  *     summary: Delete an event by ID
  *     operationId: deleteEvent
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: id
  *         in: path
@@ -77,6 +89,8 @@ router.post('/', createEvent);
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Missing or invalid Bearer token
  */
 router.delete('/:id', deleteEvent);
 
