@@ -24,15 +24,7 @@ import {
 } from '../services/api/auth'
 import { loginFormSchema, type LoginFormValues } from '../schemas/loginFormSchema'
 import { googleSsoStartUrl } from '../utils/apiBaseUrl'
-import {
-  MaterialSymbol,
-  authFormSpacing,
-  authLinkSubtleSx,
-  authSubmitButtonSx,
-  dividerLabelSx,
-  dividerWithLabelSx,
-  googleSignInButtonSx,
-} from '../theme'
+import { MaterialSymbol } from '../theme'
 import { GoogleLogo } from './GoogleLogo'
 
 export type LoginFormProps = {
@@ -112,22 +104,39 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         onClick={handleGoogleSignIn}
         disabled={isSubmitting}
         startIcon={<GoogleLogo width={20} height={20} />}
-        sx={googleSignInButtonSx}
+        sx={{
+          py: 1.5,
+          borderColor: 'border.subtle',
+          color: 'text.secondary',
+          fontWeight: 500,
+          '&:hover': { borderColor: 'border.subtle', bgcolor: 'surface.containerLow' },
+        }}
       >
         Sign in with Google
       </Button>
 
-      <Divider sx={dividerWithLabelSx}>
-        <Typography variant="labelSm" sx={dividerLabelSx}>
+      <Divider
+        sx={{
+          my: 4,
+          '&::before, &::after': { borderColor: 'border.subtle' },
+        }}
+      >
+        <Typography
+          variant="labelSm"
+          sx={{
+            bgcolor: 'surface.containerLowest',
+            px: 2,
+            color: 'text.disabled',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+          }}
+        >
           or continue with email
         </Typography>
       </Divider>
 
       {(apiError || lockUntil) && (
-        <Alert
-          severity={lockUntil ? 'warning' : 'error'}
-          sx={{ mb: 0 }}
-        >
+        <Alert severity={lockUntil ? 'warning' : 'error'}>
           {apiError}
           {lockUntil && (
             <Typography variant="labelSm" sx={{ mt: 1, display: 'block', opacity: 0.9 }}>
@@ -142,7 +151,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       )}
 
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <Stack spacing={authFormSpacing}>
+        <Stack spacing={3}>
           <TextField
             id="email"
             label="Email address"
@@ -159,7 +168,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           />
 
           <Box>
-            <Stack direction="row" sx={{ mb: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+            <Stack
+              direction="row"
+              sx={{ mb: 1, justifyContent: 'space-between', alignItems: 'center' }}
+            >
               <Typography
                 component="label"
                 htmlFor="password"
@@ -173,7 +185,11 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
                 to={ROUTES.FORGOT_PASSWORD}
                 variant="labelSm"
                 color="primary"
-                sx={authLinkSubtleSx}
+                sx={{
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  '&:hover': { color: 'primary.dark' },
+                }}
               >
                 Forgot password?
               </Typography>
@@ -213,9 +229,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           </Box>
 
           <FormControlLabel
-            control={
-              <Checkbox disabled={isSubmitting} {...rememberReg} />
-            }
+            control={<Checkbox disabled={isSubmitting} {...rememberReg} />}
             label={
               <Typography variant="bodySm" color="text.secondary">
                 Remember me for 30 days
@@ -229,7 +243,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             color="primary"
             fullWidth
             disabled={isSubmitting}
-            sx={authSubmitButtonSx}
+            sx={{ py: 2, fontWeight: 700 }}
           >
             {isSubmitting ? (
               <CircularProgress size={22} color="inherit" />

@@ -2,7 +2,7 @@ import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
 import { ROUTES } from '../routes/paths'
-import { authLinkSx, authMainSx, authPageSx } from '../theme'
+import { authMeshBackground } from '../theme'
 
 type Props = {
   title: string
@@ -11,8 +11,25 @@ type Props = {
 
 export function AuthPlaceholderPage({ title, description }: Props) {
   return (
-    <Box sx={authPageSx}>
-      <Box component="main" sx={{ ...authMainSx, textAlign: 'center' }}>
+    <Box
+      sx={(theme) => ({
+        ...authMeshBackground(theme.palette.mode),
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: { xs: 2, md: 3 },
+      })}
+    >
+      <Box
+        component="main"
+        sx={{
+          width: 1,
+          maxWidth: 440,
+          textAlign: 'center',
+          animation: 'auth-fade-in 0.4s ease-out',
+        }}
+      >
         <Typography variant="headlineLg" color="text.primary" gutterBottom>
           {title}
         </Typography>
@@ -24,7 +41,11 @@ export function AuthPlaceholderPage({ title, description }: Props) {
           to={ROUTES.LOGIN}
           variant="labelMd"
           color="primary"
-          sx={authLinkSx}
+          sx={{
+            fontWeight: 700,
+            textDecoration: 'none',
+            '&:hover': { color: 'primary.dark' },
+          }}
         >
           Back to sign in
         </Typography>

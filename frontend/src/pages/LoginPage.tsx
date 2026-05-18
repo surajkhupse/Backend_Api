@@ -7,28 +7,49 @@ import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { LoginForm } from '../components/LoginForm'
 import { APP_BRAND_NAME } from '../constants'
 import { ROUTES } from '../routes/paths'
-import {
-  MaterialSymbol,
-  authBrandBlockSx,
-  authBrandIconSx,
-  authCardSx,
-  authFooterTextSx,
-  authLinkSx,
-  authMainSx,
-  authPageSx,
-  authStatusDotSx,
-  authStatusRowSx,
-  supportFabSx,
-} from '../theme'
+import { authMeshBackground, MaterialSymbol, ThemeModeToggle } from '../theme'
 
 export function LoginPage() {
   const navigate = useNavigate()
 
   return (
-    <Box sx={authPageSx}>
-      <Box component="main" sx={authMainSx}>
-        <Box sx={authBrandBlockSx}>
-          <Box sx={authBrandIconSx}>
+    <Box
+      sx={(theme) => ({
+        ...authMeshBackground(theme.palette.mode),
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: { xs: 2, md: 3 },
+        position: 'relative',
+      })}
+    >
+      <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
+        <ThemeModeToggle />
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          width: 1,
+          maxWidth: 440,
+          animation: 'auth-fade-in 0.4s ease-out',
+        }}
+      >
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Box
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 64,
+              height: 64,
+              borderRadius: 1.5,
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              boxShadow: 3,
+              mb: 3,
+            }}
+          >
             <MaterialSymbol name="event_available" filled sx={{ fontSize: 32 }} />
           </Box>
           <Typography variant="headlineLg" color="text.primary" gutterBottom>
@@ -39,32 +60,62 @@ export function LoginPage() {
           </Typography>
         </Box>
 
-        <Paper sx={authCardSx}>
+        <Paper
+          sx={{
+            bgcolor: 'surface.containerLowest',
+            border: 1,
+            borderColor: 'border.subtle',
+            borderRadius: 1.5,
+            p: 4,
+            boxShadow: '0 8px 30px rgb(0 0 0 / 0.04)',
+            backdropFilter: 'blur(4px)',
+          }}
+        >
           <LoginForm onSuccess={() => navigate(ROUTES.HOME, { replace: true })} />
         </Paper>
 
-        <Typography variant="bodySm" color="text.secondary" sx={authFooterTextSx}>
+        <Typography variant="bodySm" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
           Don&apos;t have an account?{' '}
           <Typography
             component={RouterLink}
             to={ROUTES.SIGN_UP}
             variant="labelMd"
             color="primary"
-            sx={authLinkSx}
+            sx={{
+              fontWeight: 700,
+              textDecoration: 'none',
+              '&:hover': { color: 'primary.dark' },
+            }}
           >
             Sign up for free
           </Typography>
         </Typography>
 
-        <Stack direction="row" sx={authStatusRowSx}>
+        <Stack
+          direction="row"
+          sx={{
+            mt: 6,
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 3,
+            flexWrap: 'wrap',
+          }}
+        >
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <Box sx={authStatusDotSx} />
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: 'secondary.light',
+              }}
+            />
             <Typography variant="labelSm" color="text.disabled">
               System operational
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-            <MaterialSymbol name="lock" sx={{ fontSize: 16, color: 'text.secondary' }} />
+            <MaterialSymbol name="lock" sx={{ fontSize: 16, color: 'text.disabled' }} />
             <Typography variant="labelSm" color="text.disabled">
               Secure 256-bit SSL
             </Typography>
@@ -72,7 +123,26 @@ export function LoginPage() {
         </Stack>
       </Box>
 
-      <Button type="button" sx={supportFabSx}>
+      <Button
+        type="button"
+        sx={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: { xs: 'none', md: 'flex' },
+          alignItems: 'center',
+          gap: 1,
+          bgcolor: 'surface.containerLowest',
+          border: 1,
+          borderColor: 'border.subtle',
+          px: 2,
+          py: 1,
+          borderRadius: 9999,
+          boxShadow: 1,
+          color: 'text.secondary',
+          '&:hover': { bgcolor: 'surface.containerLow' },
+        }}
+      >
         <MaterialSymbol name="help_outline" sx={{ fontSize: 20, color: 'primary.main' }} />
         <Typography variant="labelMd" color="text.secondary">
           Support

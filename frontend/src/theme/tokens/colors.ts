@@ -1,128 +1,71 @@
-/**
- * EventPro design tokens — from the login mockup (Material-style semantic names).
- * Use via MUI palette + `theme.tokens.eventPro`.
- */
-export const eventProLight = {
-  primary: '#3525cd',
-  onPrimary: '#ffffff',
-  primaryContainer: '#4f46e5',
-  onPrimaryContainer: '#dad7ff',
-  primaryFixed: '#e2dfff',
-  primaryFixedDim: '#c3c0ff',
-  onPrimaryFixed: '#0f0069',
-  onPrimaryFixedVariant: '#3323cc',
-  inversePrimary: '#c3c0ff',
+/** EventPro / enterprise SaaS color tokens — single source of truth. */
 
-  secondary: '#00687a',
-  onSecondary: '#ffffff',
-  secondaryContainer: '#57dffe',
-  onSecondaryContainer: '#006172',
-  secondaryFixed: '#acedff',
-  secondaryFixedDim: '#4cd7f6',
-  onSecondaryFixed: '#001f26',
-  onSecondaryFixedVariant: '#004e5c',
+export const lightColors = {
+  primary: '#3525CD',
+  primaryContainer: '#4F46E5',
+  primaryFixed: '#E2DFFF',
+  primaryFixedDim: '#C3C0FF',
 
-  tertiary: '#7e3000',
-  onTertiary: '#ffffff',
-  tertiaryContainer: '#a44100',
-  onTertiaryContainer: '#ffd2be',
-  tertiaryFixed: '#ffdbcc',
-  tertiaryFixedDim: '#ffb695',
-  onTertiaryFixed: '#351000',
-  onTertiaryFixedVariant: '#7b2f00',
+  secondary: '#00687A',
+  secondaryContainer: '#57DFFE',
+  secondaryFixed: '#ACEDFF',
 
-  error: '#ba1a1a',
-  onError: '#ffffff',
-  errorContainer: '#ffdad6',
-  onErrorContainer: '#93000a',
+  background: '#F8F9FF',
+  surface: '#F8F9FF',
+  surfaceBright: '#F8F9FF',
+  surfaceContainerLowest: '#FFFFFF',
+  surfaceContainerLow: '#EFF4FF',
+  surfaceContainer: '#E5EEFF',
+  surfaceContainerHigh: '#DCE9FF',
+  surfaceContainerHighest: '#D3E4FE',
 
-  background: '#f8f9ff',
-  onBackground: '#0b1c30',
-  surface: '#f8f9ff',
-  onSurface: '#0b1c30',
+  onSurface: '#0B1C30',
   onSurfaceVariant: '#464555',
-  surfaceBright: '#f8f9ff',
-  surfaceDim: '#cbdbf5',
-  surfaceTint: '#4d44e3',
-  surfaceVariant: '#d3e4fe',
-  surfaceContainerLowest: '#ffffff',
-  surfaceContainerLow: '#eff4ff',
-  surfaceContainer: '#e5eeff',
-  surfaceContainerHigh: '#dce9ff',
-  surfaceContainerHighest: '#d3e4fe',
-
   outline: '#777587',
-  outlineVariant: '#c7c4d8',
+  outlineVariant: '#C7C4D8',
 
-  inverseSurface: '#213145',
-  inverseOnSurface: '#eaf1ff',
+  success: '#10B981',
+  error: '#BA1A1A',
+  errorContainer: '#FFDAD6',
+  warning: '#F59E0B',
+
+  meshIndigo: '79 70 229',
+  meshCyan: '0 104 122',
 } as const
 
-/** Dark scheme derived from inverse / fixed roles in the mockup. */
-export const eventProDark = {
-  primary: '#c3c0ff',
-  onPrimary: '#0f0069',
-  primaryContainer: '#4f46e5',
-  onPrimaryContainer: '#dad7ff',
-  primaryFixed: '#e2dfff',
-  primaryFixedDim: '#c3c0ff',
-  onPrimaryFixed: '#0f0069',
-  onPrimaryFixedVariant: '#3323cc',
-  inversePrimary: '#3525cd',
+export const darkColors = {
+  primary: '#C3C0FF',
+  primaryContainer: '#4F46E5',
+  primaryFixed: '#E2DFFF',
+  primaryFixedDim: '#3525CD',
 
-  secondary: '#4cd7f6',
-  onSecondary: '#001f26',
-  secondaryContainer: '#00687a',
-  onSecondaryContainer: '#57dffe',
-  secondaryFixed: '#acedff',
-  secondaryFixedDim: '#4cd7f6',
-  onSecondaryFixed: '#001f26',
-  onSecondaryFixedVariant: '#004e5c',
+  secondary: '#57DFFE',
+  secondaryContainer: '#00687A',
+  secondaryFixed: '#ACEDFF',
 
-  tertiary: '#ffb695',
-  onTertiary: '#351000',
-  tertiaryContainer: '#a44100',
-  onTertiaryContainer: '#ffd2be',
-  tertiaryFixed: '#ffdbcc',
-  tertiaryFixedDim: '#ffb695',
-  onTertiaryFixed: '#351000',
-  onTertiaryFixedVariant: '#7b2f00',
+  background: '#0B1220',
+  surface: '#111827',
+  surfaceBright: '#1F2937',
+  surfaceContainerLowest: '#0F172A',
+  surfaceContainerLow: '#151D2E',
+  surfaceContainer: '#1C2538',
+  surfaceContainerHigh: '#243044',
+  surfaceContainerHighest: '#2D3A52',
 
-  error: '#ffb4ab',
-  onError: '#690005',
-  errorContainer: '#93000a',
-  onErrorContainer: '#ffdad6',
+  onSurface: '#F3F4F8',
+  onSurfaceVariant: '#B8B5C8',
+  outline: '#8E8AA0',
+  outlineVariant: '#3D4458',
 
-  background: '#0b1c30',
-  onBackground: '#eaf1ff',
-  surface: '#0b1c30',
-  onSurface: '#eaf1ff',
-  onSurfaceVariant: '#c7c4d8',
-  surfaceBright: '#213145',
-  surfaceDim: '#0b1c30',
-  surfaceTint: '#c3c0ff',
-  surfaceVariant: '#464555',
-  surfaceContainerLowest: '#213145',
-  surfaceContainerLow: '#1a2838',
-  surfaceContainer: '#213145',
-  surfaceContainerHigh: '#2a3a4f',
-  surfaceContainerHighest: '#334155',
+  success: '#34D399',
+  error: '#FFB4AB',
+  errorContainer: '#93000A',
+  warning: '#FBBF24',
 
-  outline: '#948f9e',
-  outlineVariant: '#464555',
-
-  inverseSurface: '#eaf1ff',
-  inverseOnSurface: '#0b1c30',
+  meshIndigo: '79 70 229',
+  meshCyan: '87 223 254',
 } as const
 
-export const common = {
-  white: '#ffffff',
-  black: '#000000',
-  transparent: 'transparent',
-} as const
-
-/** Mesh gradient accent RGB (indigo + cyan from mockup). */
-export const meshAccents = {
-  indigo: '79, 70, 229',
-  cyan: '87, 223, 254',
-} as const
+export type ColorTokens = {
+  [K in keyof typeof lightColors]: string
+}

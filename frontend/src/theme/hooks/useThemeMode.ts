@@ -6,73 +6,68 @@ import {
   useMemo,
   useState,
 } from 'react'
-import type { ResolvedThemeMode, ThemeMode } from '../types'
 
-export const THEME_MODE_STORAGE_KEY = 'app-theme-mode'
-export const DEFAULT_THEME_MODE: ResolvedThemeMode = 'light'
+import { themeConfig } from '../theme-config'
+
+const STORAGE_KEY = themeConfig.modeStorageKey
+const DEFAULT_MODE = 'light' as const
+
+export type ColorMode = 'light' | 'dark'
 
 export type ThemeModeContextValue = {
-  /** Current color scheme (`light` or `dark`). */
-  mode: ResolvedThemeMode
-  resolvedMode: ResolvedThemeMode
-  setMode: (mode: ResolvedThemeMode | ThemeMode) => void
+  mode: ColorMode
+  resolvedMode: ColorMode
+  setMode: (mode: ColorMode) => void
   toggleMode: () => void
 }
 
 export const ThemeModeContext = createContext<ThemeModeContextValue | null>(null)
 
-function resolveMode(stored: string | null): ResolvedThemeMode {
-  if (stored === 'dark') return 'dark'
-  // `system` and unknown values → light (app default; ignore OS preference)
-  return DEFAULT_THEME_MODE
+function resolveMode(stored: string | null): ColorMode {
+  return stored === 'dark' ? 'dark' : DEFAULT_MODE
 }
 
-function readStoredMode(): ResolvedThemeMode {
+function readStoredMode(): ColorMode {
   try {
-    const stored = localStorage.getItem(THEME_MODE_STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY)
     const mode = resolveMode(stored)
     if (stored === 'system' || (stored != null && stored !== 'light' && stored !== 'dark')) {
-      localStorage.setItem(THEME_MODE_STORAGE_KEY, mode)
+      localStorage.setItem(STORAGE_KEY, mode)
     }
     return mode
   } catch {
-    /* private mode / SSR */
+    /* ignore */
   }
-  return DEFAULT_THEME_MODE
+  return DEFAULT_MODE
 }
 
-/** Apply `light` / `dark` on `<html>` before React paints (avoids flash). */
-export function applyThemeModeToDocument(mode: ResolvedThemeMode): void {
+export function applyThemeModeToDocument(mode: ColorMode): void {
   if (typeof document === 'undefined') return
   const root = document.documentElement
+  root.setAttribute('data-color-scheme', mode)
   root.classList.remove('light', 'dark')
   root.classList.add(mode)
   root.style.colorScheme = mode
 }
 
 applyThemeModeToDocument(
-  typeof localStorage !== 'undefined'
-    ? resolveMode(localStorage.getItem(THEME_MODE_STORAGE_KEY))
-    : DEFAULT_THEME_MODE,
+  typeof localStorage !== 'undefined' ? resolveMode(localStorage.getItem(STORAGE_KEY)) : DEFAULT_MODE,
 )
 
-/** Internal state hook — used by `AppThemeProvider`. */
 export function useThemeModeState(): ThemeModeContextValue {
-  const [mode, setModeState] = useState<ResolvedThemeMode>(readStoredMode)
-
-  const resolvedMode = mode
+  const [mode, setModeState] = useState<ColorMode>(readStoredMode)
 
   useEffect(() => {
     try {
-      localStorage.setItem(THEME_MODE_STORAGE_KEY, resolvedMode)
+      localStorage.setItem(STORAGE_KEY, mode)
     } catch {
       /* ignore */
     }
-    applyThemeModeToDocument(resolvedMode)
-  }, [resolvedMode])
+    applyThemeModeToDocument(mode)
+  }, [mode])
 
-  const setMode = useCallback((next: ResolvedThemeMode | ThemeMode) => {
-    setModeState(next === 'dark' ? 'dark' : 'light')
+  const setMode = useCallback((next: ColorMode) => {
+    setModeState(next)
   }, [])
 
   const toggleMode = useCallback(() => {
@@ -80,8 +75,8 @@ export function useThemeModeState(): ThemeModeContextValue {
   }, [])
 
   return useMemo(
-    () => ({ mode, resolvedMode, setMode, toggleMode }),
-    [mode, resolvedMode, setMode, toggleMode],
+    () => ({ mode, resolvedMode: mode, setMode, toggleMode }),
+    [mode, setMode, toggleMode],
   )
 }
 
