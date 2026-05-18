@@ -56,6 +56,7 @@ declare module '@mui/material/styles' {
     bodySm: CSSProperties
     labelMd: CSSProperties
     labelSm: CSSProperties
+    mono: CSSProperties
   }
   interface TypographyVariantsOptions extends FontStyleExtend {
     display?: CSSProperties
@@ -66,6 +67,7 @@ declare module '@mui/material/styles' {
     bodySm?: CSSProperties
     labelMd?: CSSProperties
     labelSm?: CSSProperties
+    mono?: CSSProperties
   }
   interface Theme {
     customShadows: CustomShadows
@@ -90,5 +92,6 @@ declare module '@mui/material/Typography' {
     bodySm: true
     labelMd: true
     labelSm: true
+    mono: true
   }
 }

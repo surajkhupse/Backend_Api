@@ -9,6 +9,7 @@ import { snackbar } from './snackbar'
 import { table } from './table'
 import { textfield } from './textfield'
 import { tooltip } from './tooltip'
+import { typographyComponent } from './typography'
 
 export const components = {
   ...appBar,
@@ -22,4 +23,5 @@ export const components = {
   ...table,
   ...textfield,
   ...tooltip,
+  ...typographyComponent,
 }

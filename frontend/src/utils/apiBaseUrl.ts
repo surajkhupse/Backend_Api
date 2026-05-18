@@ -1,6 +1,10 @@
 /** Backend origin without trailing slash (from `VITE_API_URL`). */
 export function getApiBaseUrl(): string {
-  return import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? ''
+  const configured = import.meta.env.VITE_API_URL?.replace(/\/$/, '') ?? ''
+  if (configured) return configured
+  // Dev: use Vite proxy (/api → backend) when env is unset
+  if (import.meta.env.DEV) return ''
+  return ''
 }
 
 export function googleSsoStartUrl(): string {

@@ -14,18 +14,18 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
-import { ROUTES } from '../routes/paths'
-import { useAppDispatch } from '../store/hooks'
-import { setTokens } from '../store/slices/authSlice'
 import {
   getLoginErrorMessage,
+  GoogleLogo,
   isAccountLockedError,
   loginRequest,
-} from '../services/api/auth'
-import { loginFormSchema, type LoginFormValues } from '../schemas/loginFormSchema'
-import { googleSsoStartUrl } from '../utils/apiBaseUrl'
-import { MaterialSymbol } from '../theme'
-import { GoogleLogo } from './GoogleLogo'
+} from '../auth'
+import { ROUTES } from '../../routes/paths'
+import { useAppDispatch } from '../../store/hooks'
+import { setTokens } from '../../store/slices/authSlice'
+import { googleSsoStartUrl } from '../../utils/apiBaseUrl'
+import { MaterialSymbol } from '../../theme'
+import { loginFormSchema, type LoginFormValues } from './loginFormSchema'
 
 export type LoginFormProps = {
   onSuccess?: () => void
@@ -72,7 +72,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         setTokens({
           accessToken: payload.accessToken,
           refreshToken: payload.refreshToken,
-          rememberMe: data.rememberMe ?? false,
+          rememberMe: Boolean(data.rememberMe),
         }),
       )
       onSuccess?.()
@@ -165,6 +165,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             onChange={emailReg.onChange}
             onBlur={emailReg.onBlur}
             inputRef={emailReg.ref}
+            fullWidth
           />
 
           <Box>
@@ -195,6 +196,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               </Typography>
             </Stack>
             <TextField
+              fullWidth
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"

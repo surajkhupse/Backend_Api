@@ -4,13 +4,15 @@ export const fontFamilies = {
   mono: 'Geist Mono',
 } as const
 
+/** EventPro dashboard type scale (px) */
 export const fontSizes = {
   display: 48,
-  headlineLg: 30,
-  headlineMd: 20,
-  bodyLg: 18,
-  bodyMd: 16,
-  bodySm: 14,
-  labelMd: 14,
+  headlineLg: 22,
+  headlineMd: 18,
+  bodyLg: 16,
+  bodyMd: 14,
+  bodySm: 12,
+  labelMd: 12,
   labelSm: 12,
+  mono: 13,
 } as const

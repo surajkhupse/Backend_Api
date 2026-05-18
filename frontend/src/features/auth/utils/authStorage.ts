@@ -1,4 +1,4 @@
-import { AUTH_STORAGE_KEYS } from '../constants'
+import { AUTH_STORAGE_KEYS } from '../../../constants'
 
 const REMEMBER_KEY = 'authRememberMe'
 
@@ -27,12 +27,46 @@ export function getAuthStorage(): Storage {
   return getRememberMe() ? localStorage : sessionStorage
 }
 
-export function readStoredToken(key: string): string | null {
+function readTokenFrom(storage: Storage, key: string): string | null {
   try {
-    return getAuthStorage().getItem(key) ?? null
+    return storage.getItem(key)
   } catch {
     return null
   }
+}
+
+export function readStoredToken(key: string): string | null {
+  try {
+    const remember = getRememberMe()
+    const primary = remember ? localStorage : sessionStorage
+    const secondary = remember ? sessionStorage : localStorage
+    return readTokenFrom(primary, key) ?? readTokenFrom(secondary, key)
+  } catch {
+    return null
+  }
+}
+
+/** Read JWT pair from either storage (fixes remember-me / session mismatch on reload). */
+export function readPersistedAuth(): {
+  accessToken: string
+  refreshToken: string
+  rememberMe: boolean
+} | null {
+  try {
+    const localAccess = readTokenFrom(localStorage, AUTH_STORAGE_KEYS.accessToken)
+    const localRefresh = readTokenFrom(localStorage, AUTH_STORAGE_KEYS.refreshToken)
+    if (localAccess && localRefresh) {
+      return { accessToken: localAccess, refreshToken: localRefresh, rememberMe: true }
+    }
+    const sessionAccess = readTokenFrom(sessionStorage, AUTH_STORAGE_KEYS.accessToken)
+    const sessionRefresh = readTokenFrom(sessionStorage, AUTH_STORAGE_KEYS.refreshToken)
+    if (sessionAccess && sessionRefresh) {
+      return { accessToken: sessionAccess, refreshToken: sessionRefresh, rememberMe: false }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
 }
 
 export function persistTokens(

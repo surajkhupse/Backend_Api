@@ -14,13 +14,17 @@ const MuiButtonBase: Components<Theme>['MuiButtonBase'] = {
 const MuiButton: Components<Theme>['MuiButton'] = {
   defaultProps: { disableElevation: true },
   styleOverrides: {
-    root: {
+    root: ({ theme }) => ({
       borderRadius: radius.lg,
-      fontWeight: 600,
+      fontFamily: theme.typography.labelMd.fontFamily,
+      fontWeight: theme.typography.labelMd.fontWeight,
+      fontSize: theme.typography.labelMd.fontSize,
+      lineHeight: theme.typography.labelMd.lineHeight,
+      letterSpacing: theme.typography.labelMd.letterSpacing,
       textTransform: 'none',
       transition: TRANSITION,
       '&:active': { transform: 'scale(0.98)' },
-    },
+    }),
     contained: ({ theme, ownerState }) => ({
       boxShadow: theme.vars.customShadows.primary,
       '&:hover': {

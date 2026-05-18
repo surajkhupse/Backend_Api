@@ -2,9 +2,9 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import {
   clearStoredTokens,
   persistTokens,
-  readStoredToken,
-} from '../../utils/authStorage'
-import { AUTH_STORAGE_KEYS } from '../../constants'
+  readPersistedAuth,
+  setRememberMe,
+} from '../../features/auth/utils/authStorage'
 
 export interface AuthTokens {
   accessToken: string
@@ -15,10 +15,13 @@ export interface SetTokensPayload extends AuthTokens {
   rememberMe?: boolean
 }
 
-const access = readStoredToken(AUTH_STORAGE_KEYS.accessToken)
-const refresh = readStoredToken(AUTH_STORAGE_KEYS.refreshToken)
-const persistedAuth: AuthTokens | null =
-  access && refresh ? { accessToken: access, refreshToken: refresh } : null
+const persisted = readPersistedAuth()
+if (persisted) {
+  setRememberMe(persisted.rememberMe)
+}
+const persistedAuth: AuthTokens | null = persisted
+  ? { accessToken: persisted.accessToken, refreshToken: persisted.refreshToken }
+  : null
 
 export const authSlice = createSlice({
   name: 'auth',

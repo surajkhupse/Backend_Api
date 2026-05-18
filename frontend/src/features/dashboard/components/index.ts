@@ -1,0 +1,8 @@
+export { DashboardSidebar } from './DashboardSidebar'
+export { DashboardTopBar } from './DashboardTopBar'
+export { DashboardFooter } from './DashboardFooter'
+export { DashboardFab } from './DashboardFab'
+export { DashboardStatCards } from './DashboardStatCards'
+export { RegistrationTrendsCard } from './RegistrationTrendsCard'
+export { DashboardSidePanel } from './DashboardSidePanel'
+export { UpcomingEventsTable } from './UpcomingEventsTable'

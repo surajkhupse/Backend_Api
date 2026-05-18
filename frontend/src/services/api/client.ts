@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { AUTH_STORAGE_KEYS } from '../../constants'
 import { getApiBaseUrl } from '../../utils/apiBaseUrl'
-import { readStoredToken } from '../../utils/authStorage'
+import { readStoredToken } from '../../features/auth/utils/authStorage'
 
 const baseURL = getApiBaseUrl() || undefined
 

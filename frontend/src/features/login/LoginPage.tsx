@@ -1,16 +1,24 @@
+import { useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
-import { LoginForm } from '../components/LoginForm'
-import { APP_BRAND_NAME } from '../constants'
-import { ROUTES } from '../routes/paths'
-import { authMeshBackground, MaterialSymbol, ThemeModeToggle } from '../theme'
+import { ROUTES } from '../../routes/paths'
+import { useAppSelector } from '../../store/hooks'
+import { authMeshBackground, MaterialSymbol, ThemeModeToggle } from '../../theme'
+import { LoginForm } from './LoginForm'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const auth = useAppSelector((state) => state.auth)
+
+  useEffect(() => {
+    if (auth?.accessToken) {
+      navigate(ROUTES.HOME, { replace: true })
+    }
+  }, [auth?.accessToken, navigate])
 
   return (
     <Box
@@ -35,31 +43,6 @@ export function LoginPage() {
           animation: 'auth-fade-in 0.4s ease-out',
         }}
       >
-        <Box sx={{ textAlign: 'center', mb: 5 }}>
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: 64,
-              height: 64,
-              borderRadius: 1.5,
-              bgcolor: 'primary.main',
-              color: 'primary.contrastText',
-              boxShadow: 3,
-              mb: 3,
-            }}
-          >
-            <MaterialSymbol name="event_available" filled sx={{ fontSize: 32 }} />
-          </Box>
-          <Typography variant="headlineLg" color="text.primary" gutterBottom>
-            {APP_BRAND_NAME}
-          </Typography>
-          <Typography variant="bodyMd" color="text.secondary">
-            Sign in to your account
-          </Typography>
-        </Box>
-
         <Paper
           sx={{
             bgcolor: 'background.paper',

@@ -1,8 +1,8 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
-import { ROUTES } from '../routes/paths'
-import { authMeshBackground } from '../theme'
+import { ROUTES } from '../../routes/paths'
+import { authMeshBackground } from '../../theme'
 
 type Props = {
   title: string

@@ -4,10 +4,15 @@ import { meshBackground } from './core/mixins/mesh'
 
 export const MuiCssBaseline: Components<Theme>['MuiCssBaseline'] = {
   styleOverrides: (theme) => ({
-    html: { scrollBehavior: 'smooth' },
+    html: {
+      scrollBehavior: 'smooth',
+      fontSize: 16,
+    },
     body: {
       margin: 0,
       fontFamily: theme.typography.fontFamily,
+      fontSize: theme.typography.bodyMd?.fontSize ?? '1rem',
+      lineHeight: theme.typography.bodyMd?.lineHeight ?? 1.5,
       backgroundColor: theme.palette.background.default,
       color: theme.palette.text.primary,
       transition: 'background-color 0.25s ease, color 0.25s ease',
