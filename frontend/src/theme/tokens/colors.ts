@@ -23,6 +23,8 @@ export const lightColors = {
   onSurfaceVariant: '#464555',
   outline: '#777587',
   outlineVariant: '#C7C4D8',
+  /** Soft borders — cards, inputs, dividers */
+  borderLight: '#E9EAEB',
 
   success: '#10B981',
   error: '#BA1A1A',
@@ -56,6 +58,7 @@ export const darkColors = {
   onSurfaceVariant: '#B8B5C8',
   outline: '#8E8AA0',
   outlineVariant: '#3D4458',
+  borderLight: '#2E3A4D',
 
   success: '#34D399',
   error: '#FFB4AB',

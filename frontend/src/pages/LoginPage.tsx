@@ -62,7 +62,7 @@ export function LoginPage() {
 
         <Paper
           sx={{
-            bgcolor: 'surface.containerLowest',
+            bgcolor: 'background.paper',
             border: 1,
             borderColor: 'border.subtle',
             borderRadius: 1.5,
@@ -132,7 +132,7 @@ export function LoginPage() {
           display: { xs: 'none', md: 'flex' },
           alignItems: 'center',
           gap: 1,
-          bgcolor: 'surface.containerLowest',
+          bgcolor: 'background.paper',
           border: 1,
           borderColor: 'border.subtle',
           px: 2,
@@ -140,7 +140,7 @@ export function LoginPage() {
           borderRadius: 9999,
           boxShadow: 1,
           color: 'text.secondary',
-          '&:hover': { bgcolor: 'surface.containerLow' },
+          '&:hover': { bgcolor: 'background.containerLow' },
         }}
       >
         <MaterialSymbol name="help_outline" sx={{ fontSize: 20, color: 'primary.main' }} />

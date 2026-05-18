@@ -5,6 +5,7 @@ import type { FontStyleExtend } from './core/typography'
 import type {
   CommonColorsExtend,
   GreyExtend,
+  PaletteBorderExtend,
   PaletteColorExtend,
   TypeBackgroundExtend,
   TypeTextExtend,
@@ -18,6 +19,12 @@ declare module '@mui/material/styles/createPalette' {
   interface TypeBackground extends TypeBackgroundExtend {}
   interface PaletteColor extends PaletteColorExtend {}
   interface SimplePaletteColorOptions extends PaletteColorExtend {}
+  interface Palette {
+    border: PaletteBorderExtend
+  }
+  interface PaletteOptions {
+    border?: Partial<PaletteBorderExtend>
+  }
 }
 
 declare module '@mui/material/styles/createTypography' {

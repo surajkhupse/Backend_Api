@@ -29,6 +29,11 @@ export type TypeBackgroundExtend = {
   containerHighest: string
 }
 
+export type PaletteBorderExtend = {
+  subtle: string
+  light: string
+}
+
 export type PaletteColorExtend = {
   lighter: string
   light: string
@@ -115,7 +120,11 @@ function buildSchemePalette(config: typeof themeConfig.palette, semantic: ColorT
     text,
     background,
     action,
-    divider: semantic.outlineVariant,
+    divider: semantic.borderLight,
+    border: {
+      subtle: semantic.borderLight,
+      light: semantic.borderLight,
+    },
   }
 }
 

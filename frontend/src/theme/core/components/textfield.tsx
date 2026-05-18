@@ -2,7 +2,6 @@ import { outlinedInputClasses } from '@mui/material/OutlinedInput'
 import type { Components, Theme } from '@mui/material/styles'
 
 import { radius } from '../../tokens/radius'
-import { greyVar } from '../../utils/palette-access'
 import { varAlpha } from '../../utils/var-alpha'
 
 const TRANSITION = 'border-color 200ms ease, box-shadow 200ms ease'
@@ -18,7 +17,7 @@ const MuiOutlinedInput: Components<Theme>['MuiOutlinedInput'] = {
       },
       '&:hover': {
         [`& .${outlinedInputClasses.notchedOutline}`]: {
-          borderColor: greyVar(theme.vars.palette.grey, '400Channel'),
+          borderColor: theme.vars.palette.divider,
         },
       },
       [`&.${outlinedInputClasses.focused}`]: {

@@ -109,7 +109,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           borderColor: 'border.subtle',
           color: 'text.secondary',
           fontWeight: 500,
-          '&:hover': { borderColor: 'border.subtle', bgcolor: 'surface.containerLow' },
+          '&:hover': { borderColor: 'border.subtle', bgcolor: 'background.containerLow' },
         }}
       >
         Sign in with Google
@@ -124,7 +124,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         <Typography
           variant="labelSm"
           sx={{
-            bgcolor: 'surface.containerLowest',
+            bgcolor: 'background.paper',
             px: 2,
             color: 'text.disabled',
             textTransform: 'uppercase',

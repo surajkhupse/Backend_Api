@@ -34,10 +34,11 @@ const MuiButton: Components<Theme>['MuiButton'] = {
       }),
     }),
     outlined: ({ theme }) => ({
-      borderColor: varAlpha(theme.vars.palette.primary.mainChannel, 0.32),
+      borderColor: theme.vars.palette.divider,
+      color: theme.vars.palette.text.secondary,
       '&:hover': {
-        borderColor: theme.vars.palette.primary.main,
-        backgroundColor: varAlpha(theme.vars.palette.primary.mainChannel, 0.06),
+        borderColor: theme.vars.palette.divider,
+        backgroundColor: varAlpha(theme.vars.palette.primary.mainChannel, 0.04),
       },
     }),
     sizeLarge: {

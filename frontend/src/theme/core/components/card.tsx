@@ -1,8 +1,6 @@
 import type { Components, Theme } from '@mui/material/styles'
 
 import { radius } from '../../tokens/radius'
-import { greyVar } from '../../utils/palette-access'
-import { varAlpha } from '../../utils/var-alpha'
 
 const TRANSITION = 'box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1)'
 
@@ -11,7 +9,7 @@ const MuiCard: Components<Theme>['MuiCard'] = {
     root: ({ theme }) => ({
       position: 'relative',
       borderRadius: radius.lg,
-      border: `1px solid ${varAlpha(greyVar(theme.vars.palette.grey, '200Channel'), 0.8)}`,
+      border: `1px solid ${theme.vars.palette.divider}`,
       boxShadow: theme.vars.customShadows.card,
       backgroundImage: 'none',
       transition: TRANSITION,
