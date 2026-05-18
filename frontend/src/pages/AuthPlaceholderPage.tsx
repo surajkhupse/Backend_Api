@@ -1,5 +1,8 @@
-import { Link } from 'react-router-dom'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import { Link as RouterLink } from 'react-router-dom'
 import { ROUTES } from '../routes/paths'
+import { authLinkSx, authMainSx, authPageSx } from '../theme'
 
 type Props = {
   title: string
@@ -8,17 +11,24 @@ type Props = {
 
 export function AuthPlaceholderPage({ title, description }: Props) {
   return (
-    <div className="mesh-gradient min-h-screen flex items-center justify-center p-gutter-mobile">
-      <main className="w-full max-w-md text-center animate-fade-in">
-        <h1 className="font-headline-lg text-headline-lg text-on-surface mb-3">{title}</h1>
-        <p className="font-body-md text-body-md text-on-surface-variant mb-8">{description}</p>
-        <Link
+    <Box sx={authPageSx}>
+      <Box component="main" sx={{ ...authMainSx, textAlign: 'center' }}>
+        <Typography variant="headlineLg" color="text.primary" gutterBottom>
+          {title}
+        </Typography>
+        <Typography variant="bodyMd" color="text.secondary" sx={{ mb: 4 }}>
+          {description}
+        </Typography>
+        <Typography
+          component={RouterLink}
           to={ROUTES.LOGIN}
-          className="inline-block font-label-md text-label-md text-primary font-bold hover:text-primary-container transition-colors"
+          variant="labelMd"
+          color="primary"
+          sx={authLinkSx}
         >
           Back to sign in
-        </Link>
-      </main>
-    </div>
+        </Typography>
+      </Box>
+    </Box>
   )
 }

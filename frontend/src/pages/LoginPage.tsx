@@ -1,70 +1,83 @@
-import { Link, useNavigate } from 'react-router-dom'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
+import Typography from '@mui/material/Typography'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { LoginForm } from '../components/LoginForm'
 import { APP_BRAND_NAME } from '../constants'
 import { ROUTES } from '../routes/paths'
+import {
+  MaterialSymbol,
+  authBrandBlockSx,
+  authBrandIconSx,
+  authCardSx,
+  authFooterTextSx,
+  authLinkSx,
+  authMainSx,
+  authPageSx,
+  authStatusDotSx,
+  authStatusRowSx,
+  supportFabSx,
+} from '../theme'
 
 export function LoginPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="mesh-gradient min-h-screen flex items-center justify-center p-gutter-mobile md:p-gutter-desktop">
-      <main className="w-full max-w-[440px] animate-fade-in">
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary shadow-lg mb-6">
-            <span
-              className="material-symbols-outlined filled text-white text-[32px]"
-              aria-hidden
-            >
-              event_available
-            </span>
-          </div>
-          <h1 className="font-headline-lg text-headline-lg text-on-surface mb-2">
+    <Box sx={authPageSx}>
+      <Box component="main" sx={authMainSx}>
+        <Box sx={authBrandBlockSx}>
+          <Box sx={authBrandIconSx}>
+            <MaterialSymbol name="event_available" filled sx={{ fontSize: 32 }} />
+          </Box>
+          <Typography variant="headlineLg" color="text.primary" gutterBottom>
             {APP_BRAND_NAME}
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant">
+          </Typography>
+          <Typography variant="bodyMd" color="text.secondary">
             Sign in to your account
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-sm">
+        <Paper sx={authCardSx}>
           <LoginForm onSuccess={() => navigate(ROUTES.HOME, { replace: true })} />
-        </div>
+        </Paper>
 
-        <p className="text-center mt-8 font-body-sm text-body-sm text-on-surface-variant">
+        <Typography variant="bodySm" color="text.secondary" sx={authFooterTextSx}>
           Don&apos;t have an account?{' '}
-          <Link
+          <Typography
+            component={RouterLink}
             to={ROUTES.SIGN_UP}
-            className="font-label-md text-label-md text-primary font-bold hover:text-primary-container transition-colors ml-1"
+            variant="labelMd"
+            color="primary"
+            sx={authLinkSx}
           >
             Sign up for free
-          </Link>
-        </p>
+          </Typography>
+        </Typography>
 
-        <div className="mt-12 flex justify-center items-center gap-6 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-secondary-container" aria-hidden />
-            <span className="font-label-sm text-label-sm text-outline">System operational</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-outline" aria-hidden>
-              lock
-            </span>
-            <span className="font-label-sm text-label-sm text-outline">Secure 256-bit SSL</span>
-          </div>
-        </div>
-      </main>
+        <Stack direction="row" sx={authStatusRowSx}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Box sx={authStatusDotSx} />
+            <Typography variant="labelSm" color="text.disabled">
+              System operational
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <MaterialSymbol name="lock" sx={{ fontSize: 16, color: 'text.secondary' }} />
+            <Typography variant="labelSm" color="text.disabled">
+              Secure 256-bit SSL
+            </Typography>
+          </Stack>
+        </Stack>
+      </Box>
 
-      <div className="fixed bottom-gutter-desktop right-gutter-desktop hidden md:block">
-        <button
-          type="button"
-          className="flex items-center gap-2 bg-surface-container-lowest border border-outline-variant px-4 py-2 rounded-full shadow-sm hover:bg-surface-container-low transition-colors"
-        >
-          <span className="material-symbols-outlined text-primary text-[20px]" aria-hidden>
-            help_outline
-          </span>
-          <span className="font-label-md text-label-md text-on-surface-variant">Support</span>
-        </button>
-      </div>
-    </div>
+      <Button type="button" sx={supportFabSx}>
+        <MaterialSymbol name="help_outline" sx={{ fontSize: 20, color: 'primary.main' }} />
+        <Typography variant="labelMd" color="text.secondary">
+          Support
+        </Typography>
+      </Button>
+    </Box>
   )
 }

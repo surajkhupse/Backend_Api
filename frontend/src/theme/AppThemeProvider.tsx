@@ -1,17 +1,24 @@
 import { useMemo, type ReactNode } from 'react'
 import { CssBaseline, ThemeProvider } from '@mui/material'
+import { ThemeModeContext, useThemeModeState } from './hooks/useThemeMode'
 import { createAppTheme } from './theme'
 
 type Props = { children: ReactNode }
 
-/** MUI theme (light, black text) for pages that still use Material UI. */
 export function AppThemeProvider({ children }: Props) {
-  const theme = useMemo(() => createAppTheme('light'), [])
+  const themeMode = useThemeModeState()
+  const theme = useMemo(() => createAppTheme(), [])
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline enableColorScheme />
-      {children}
-    </ThemeProvider>
+    <ThemeModeContext.Provider value={themeMode}>
+      <ThemeProvider
+        theme={theme}
+        defaultMode={themeMode.resolvedMode}
+        key={themeMode.resolvedMode}
+      >
+        <CssBaseline enableColorScheme={false} />
+        {children}
+      </ThemeProvider>
+    </ThemeModeContext.Provider>
   )
 }

@@ -1,7 +1,19 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Link } from 'react-router-dom'
+import Alert from '@mui/material/Alert'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
+import CircularProgress from '@mui/material/CircularProgress'
+import Divider from '@mui/material/Divider'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import { Link as RouterLink } from 'react-router-dom'
 import { ROUTES } from '../routes/paths'
 import { useAppDispatch } from '../store/hooks'
 import { setTokens } from '../store/slices/authSlice'
@@ -12,10 +24,16 @@ import {
 } from '../services/api/auth'
 import { loginFormSchema, type LoginFormValues } from '../schemas/loginFormSchema'
 import { googleSsoStartUrl } from '../utils/apiBaseUrl'
+import {
+  MaterialSymbol,
+  authFormSpacing,
+  authLinkSubtleSx,
+  authSubmitButtonSx,
+  dividerLabelSx,
+  dividerWithLabelSx,
+  googleSignInButtonSx,
+} from '../theme'
 import { GoogleLogo } from './GoogleLogo'
-
-const inputClass =
-  'w-full px-4 py-3 rounded-lg border bg-surface-bright font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all placeholder:text-outline/50'
 
 export type LoginFormProps = {
   onSuccess?: () => void
@@ -81,192 +99,146 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     }
   }
 
+  const emailReg = register('email')
+  const passwordReg = register('password')
+  const rememberReg = register('rememberMe')
+
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="outlined"
+        fullWidth
         onClick={handleGoogleSignIn}
         disabled={isSubmitting}
-        className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-outline-variant rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20 active:scale-[0.98] disabled:opacity-60 disabled:pointer-events-none"
+        startIcon={<GoogleLogo width={20} height={20} />}
+        sx={googleSignInButtonSx}
       >
-        <GoogleLogo className="w-5 h-5 shrink-0" />
         Sign in with Google
-      </button>
+      </Button>
 
-      <OrDivider />
+      <Divider sx={dividerWithLabelSx}>
+        <Typography variant="labelSm" sx={dividerLabelSx}>
+          or continue with email
+        </Typography>
+      </Divider>
 
       {(apiError || lockUntil) && (
-        <AlertBanner lockUntil={lockUntil} message={apiError} />
+        <Alert
+          severity={lockUntil ? 'warning' : 'error'}
+          sx={{ mb: 0 }}
+        >
+          {apiError}
+          {lockUntil && (
+            <Typography variant="labelSm" sx={{ mt: 1, display: 'block', opacity: 0.9 }}>
+              Unlocks after{' '}
+              {new Date(lockUntil).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })}
+            </Typography>
+          )}
+        </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-        <Field id="email" label="Email address" error={errors.email?.message}>
-          <input
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Stack spacing={authFormSpacing}>
+          <TextField
             id="email"
+            label="Email address"
             type="email"
             autoComplete="email"
             placeholder="name@company.com"
             disabled={isSubmitting}
-            className={`${inputClass} ${errors.email ? 'border-error' : 'border-outline-variant'}`}
-            {...register('email')}
+            error={!!errors.email}
+            helperText={errors.email?.message}
+            name={emailReg.name}
+            onChange={emailReg.onChange}
+            onBlur={emailReg.onBlur}
+            inputRef={emailReg.ref}
           />
-        </Field>
 
-        <Field
-          id="password"
-          label="Password"
-          error={errors.password?.message}
-          labelExtra={
-            <Link
-              to={ROUTES.FORGOT_PASSWORD}
-              className="font-label-sm text-label-sm text-primary hover:text-primary-container transition-colors"
-            >
-              Forgot password?
-            </Link>
-          }
-        >
-          <div className="relative">
-            <input
+          <Box>
+            <Stack direction="row" sx={{ mb: 1, justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography
+                component="label"
+                htmlFor="password"
+                variant="labelMd"
+                color="text.secondary"
+              >
+                Password
+              </Typography>
+              <Typography
+                component={RouterLink}
+                to={ROUTES.FORGOT_PASSWORD}
+                variant="labelSm"
+                color="primary"
+                sx={authLinkSubtleSx}
+              >
+                Forgot password?
+              </Typography>
+            </Stack>
+            <TextField
               id="password"
               type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               placeholder="••••••••"
               disabled={isSubmitting}
-              className={`${inputClass} pr-12 ${errors.password ? 'border-error' : 'border-outline-variant'}`}
-              {...register('password')}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              name={passwordReg.name}
+              onChange={passwordReg.onChange}
+              onBlur={passwordReg.onBlur}
+              inputRef={passwordReg.ref}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        edge="end"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        <MaterialSymbol
+                          name={showPassword ? 'visibility_off' : 'visibility'}
+                          sx={{ fontSize: 20 }}
+                        />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
             />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition-colors"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                {showPassword ? 'visibility_off' : 'visibility'}
-              </span>
-            </button>
-          </div>
-        </Field>
+          </Box>
 
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            disabled={isSubmitting}
-            className="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary transition-all"
-            {...register('rememberMe')}
+          <FormControlLabel
+            control={
+              <Checkbox disabled={isSubmitting} {...rememberReg} />
+            }
+            label={
+              <Typography variant="bodySm" color="text.secondary">
+                Remember me for 30 days
+              </Typography>
+            }
           />
-          <span className="font-body-sm text-body-sm text-on-surface-variant">
-            Remember me for 30 days
-          </span>
-        </label>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full py-4 bg-primary text-white rounded-lg font-label-md text-label-md font-bold shadow-lg shadow-primary/20 hover:bg-primary-container transition-all duration-200 active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none flex items-center justify-center gap-2"
-        >
-          {isSubmitting ? (
-            <>
-              <span
-                className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
-                aria-hidden
-              />
-              Signing in…
-            </>
-          ) : (
-            'Sign in'
-          )}
-        </button>
-      </form>
-    </>
-  )
-}
-
-function OrDivider() {
-  return (
-    <div className="relative my-8">
-      <div aria-hidden className="absolute inset-0 flex items-center">
-        <div className="w-full border-t border-outline-variant" />
-      </div>
-      <div className="relative flex justify-center font-label-sm text-label-sm">
-        <span className="bg-surface-container-lowest px-4 text-outline uppercase tracking-widest">
-          or continue with email
-        </span>
-      </div>
-    </div>
-  )
-}
-
-function AlertBanner({
-  message,
-  lockUntil,
-}: {
-  message: string | null
-  lockUntil: string | null
-}) {
-  const isLock = !!lockUntil
-  return (
-    <div
-      role="alert"
-      className={`mb-6 rounded-lg border px-4 py-3 text-left font-body-sm text-body-sm ${
-        isLock
-          ? 'border-tertiary-fixed-dim bg-tertiary-fixed text-on-tertiary-fixed'
-          : 'border-error bg-error-container text-on-error-container'
-      }`}
-    >
-      {message}
-      {lockUntil && (
-        <p className="mt-2 font-label-sm text-label-sm opacity-90">
-          Unlocks after{' '}
-          {new Date(lockUntil).toLocaleString(undefined, {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-          })}
-        </p>
-      )}
-    </div>
-  )
-}
-
-function Field({
-  id,
-  label,
-  error,
-  labelExtra,
-  children,
-}: {
-  id: string
-  label: string
-  error?: string
-  labelExtra?: ReactNode
-  children: ReactNode
-}) {
-  return (
-    <div>
-      {labelExtra ? (
-        <div className="flex items-center justify-between mb-2">
-          <label
-            htmlFor={id}
-            className="block font-label-md text-label-md text-on-surface-variant"
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={isSubmitting}
+            sx={authSubmitButtonSx}
           >
-            {label}
-          </label>
-          {labelExtra}
-        </div>
-      ) : (
-        <label
-          htmlFor={id}
-          className="block font-label-md text-label-md text-on-surface-variant mb-2"
-        >
-          {label}
-        </label>
-      )}
-      {children}
-      {error && (
-        <p className="mt-1.5 font-label-sm text-label-sm text-error" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+            {isSubmitting ? (
+              <CircularProgress size={22} color="inherit" />
+            ) : (
+              'Sign in'
+            )}
+          </Button>
+        </Stack>
+      </Box>
+    </>
   )
 }
