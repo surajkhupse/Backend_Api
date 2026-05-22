@@ -33,6 +33,7 @@ export function DashboardTopBar() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        gap: 2,
         borderBottom: 1,
         borderColor: 'border.subtle',
         bgcolor: (theme) =>
@@ -42,12 +43,12 @@ export function DashboardTopBar() {
         backdropFilter: 'blur(12px)',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography variant="labelMd" color="text.secondary">
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+        <Typography variant="labelMd" color="text.secondary" noWrap>
           {crumb.parent}
         </Typography>
         <MaterialSymbol name="chevron_right" sx={{ fontSize: 16, color: 'text.secondary' }} />
-        <Typography variant="labelMd" color="primary.main" sx={{ fontWeight: 700 }}>
+        <Typography variant="labelMd" color="primary.main" sx={{ fontWeight: 700 }} noWrap>
           {crumb.current}
         </Typography>
       </Box>

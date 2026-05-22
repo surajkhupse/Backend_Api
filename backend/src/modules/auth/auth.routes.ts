@@ -178,6 +178,16 @@ router.get('/sessions', authenticate, listSessions);
  *         name: limit
  *         schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
  *         description: Max rows (default 50, max 100)
+ *       - in: query
+ *         name: action
+ *         schema:
+ *           type: string
+ *           enum: [LOGIN_SUCCESS, LOGIN_FAILURE, LOGIN_LOCKED, LOGIN_SSO_SUCCESS]
+ *         description: Filter by action type
+ *       - in: query
+ *         name: q
+ *         schema: { type: string }
+ *         description: Search IP address, action, or user-agent (case-insensitive)
  *     responses:
  *       200:
  *         description: Audit entries newest first

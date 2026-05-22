@@ -4,6 +4,9 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { clearAuditFilters } from '../../store/slices/auditFilterSlice'
 import { MaterialSymbol } from '../../theme'
 import { layout } from '../../theme/tokens/spacing'
 import { fetchMyAuditLogs, getAuditLogsErrorMessage } from './api/auditLogs'
@@ -12,23 +15,29 @@ import { AuditLogsFilters } from './components/AuditLogsFilters'
 import { getAuditLogPageCount, paginateAuditLogs } from './components/AuditLogsPagination'
 import { AuditLogsStatCards } from './components/AuditLogsStatCards'
 import { AuditLogsTable } from './components/AuditLogsTable'
-import type { AuditActionFilter, AuditLogEntry } from './types'
+import type { AuditLogEntry } from './types'
 import { exportAuditLogsCsv } from './utils/auditLogPresentation'
-import { filterAuditLogs } from './utils/filterAuditLogs'
 
 export function AuditLogsPage() {
+  const dispatch = useAppDispatch()
+  const actionFilter = useAppSelector((state) => state.auditFilter.actionFilter)
+  const searchQuery = useAppSelector((state) => state.auditFilter.searchQuery)
+  const debouncedSearch = useDebouncedValue(searchQuery, 300)
+
   const [logs, setLogs] = useState<AuditLogEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [actionFilter, setActionFilter] = useState<AuditActionFilter>('all')
-  const [searchQuery, setSearchQuery] = useState('')
   const [page, setPage] = useState(1)
 
   const loadLogs = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const data = await fetchMyAuditLogs(100)
+      const data = await fetchMyAuditLogs({
+        limit: 100,
+        action: actionFilter === 'all' ? undefined : actionFilter,
+        q: debouncedSearch,
+      })
       setLogs(data)
       setPage(1)
     } catch (err) {
@@ -37,38 +46,32 @@ export function AuditLogsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [actionFilter, debouncedSearch])
 
   useEffect(() => {
     void loadLogs()
   }, [loadLogs])
 
-  const filteredLogs = useMemo(
-    () => filterAuditLogs(logs, actionFilter, searchQuery),
-    [logs, actionFilter, searchQuery],
-  )
-
   useEffect(() => {
     setPage(1)
-  }, [actionFilter, searchQuery])
+  }, [actionFilter, debouncedSearch])
 
   useEffect(() => {
-    const maxPage = getAuditLogPageCount(filteredLogs.length)
+    const maxPage = getAuditLogPageCount(logs.length)
     if (page > maxPage) setPage(maxPage)
-  }, [filteredLogs.length, page])
+  }, [logs.length, page])
 
-  const pagedLogs = useMemo(() => paginateAuditLogs(filteredLogs, page), [filteredLogs, page])
+  const pagedLogs = useMemo(() => paginateAuditLogs(logs, page), [logs, page])
 
   const hasFilters = actionFilter !== 'all' || searchQuery.trim().length > 0
 
   function handleClearFilters() {
-    setActionFilter('all')
-    setSearchQuery('')
+    dispatch(clearAuditFilters())
     setPage(1)
   }
 
   function handleExport() {
-    exportAuditLogsCsv(filteredLogs)
+    exportAuditLogsCsv(logs)
   }
 
   return (
@@ -112,7 +115,7 @@ export function AuditLogsPage() {
             variant="contained"
             startIcon={<MaterialSymbol name="download" />}
             onClick={handleExport}
-            disabled={loading || filteredLogs.length === 0}
+            disabled={loading || logs.length === 0}
           >
             Export logs
           </Button>
@@ -126,33 +129,23 @@ export function AuditLogsPage() {
       )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <AuditLogsFilters
-          actionFilter={actionFilter}
-          onActionFilterChange={setActionFilter}
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          resultCount={filteredLogs.length}
-          totalCount={logs.length}
-          onClear={handleClearFilters}
-        />
+        <AuditLogsFilters resultCount={logs.length} onClear={handleClearFilters} />
 
         {loading ? (
           <Box sx={{ py: 8, display: 'flex', justifyContent: 'center' }}>
             <CircularProgress />
           </Box>
         ) : logs.length === 0 ? (
-          <AuditLogsEmptyState filtered={false} />
-        ) : filteredLogs.length === 0 ? (
           <AuditLogsEmptyState filtered={hasFilters} />
         ) : (
           <>
             <AuditLogsTable
               entries={pagedLogs}
-              totalCount={filteredLogs.length}
+              totalCount={logs.length}
               page={page}
               onPageChange={setPage}
             />
-            <AuditLogsStatCards entries={filteredLogs} />
+            <AuditLogsStatCards entries={logs} />
           </>
         )}
       </Box>

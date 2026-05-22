@@ -9,16 +9,13 @@ import Paper from '@mui/material/Paper'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import { useAppDispatch, useAppSelector } from '../../../store/hooks'
+import { setAuditActionFilter, setAuditSearchQuery } from '../../../store/slices/auditFilterSlice'
 import { MaterialSymbol } from '../../../theme'
 import type { AuditActionFilter } from '../types'
 
 export type AuditLogsFiltersProps = {
-  actionFilter: AuditActionFilter
-  onActionFilterChange: (value: AuditActionFilter) => void
-  searchQuery: string
-  onSearchQueryChange: (value: string) => void
   resultCount: number
-  totalCount: number
   onClear: () => void
 }
 
@@ -30,15 +27,10 @@ const ACTION_OPTIONS: { value: AuditActionFilter; label: string }[] = [
   { value: 'LOGIN_SSO_SUCCESS', label: 'Google sign-in' },
 ]
 
-export function AuditLogsFilters({
-  actionFilter,
-  onActionFilterChange,
-  searchQuery,
-  onSearchQueryChange,
-  resultCount,
-  totalCount,
-  onClear,
-}: AuditLogsFiltersProps) {
+export function AuditLogsFilters({ resultCount, onClear }: AuditLogsFiltersProps) {
+  const dispatch = useAppDispatch()
+  const actionFilter = useAppSelector((state) => state.auditFilter.actionFilter)
+  const searchQuery = useAppSelector((state) => state.auditFilter.searchQuery)
   const hasActiveFilters = actionFilter !== 'all' || searchQuery.trim().length > 0
 
   return (
@@ -49,62 +41,61 @@ export function AuditLogsFilters({
         border: 1,
         borderColor: 'border.subtle',
         borderRadius: 3,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 2,
       }}
     >
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="Search by IP, action, target, or date…"
-        value={searchQuery}
-        onChange={(e) => onSearchQueryChange(e.target.value)}
-        aria-label="Search audit logs"
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 2,
-            bgcolor: 'background.containerLow',
-          },
-        }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <MaterialSymbol name="search" sx={{ fontSize: 22, color: 'text.secondary' }} />
-              </InputAdornment>
-            ),
-            endAdornment: searchQuery ? (
-              <InputAdornment position="end">
-                <IconButton
-                  size="small"
-                  aria-label="Clear search"
-                  onClick={() => onSearchQueryChange('')}
-                  edge="end"
-                >
-                  <MaterialSymbol name="close" sx={{ fontSize: 18 }} />
-                </IconButton>
-              </InputAdornment>
-            ) : null,
-          },
-        }}
-      />
-
       <Box
         sx={{
           display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'flex-end',
+          flexDirection: 'row',
+          alignItems: 'center',
           gap: 2,
+          flexWrap: { xs: 'wrap', md: 'nowrap' },
         }}
       >
-        <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 200 } }}>
+        <TextField
+          size="small"
+          placeholder="Search by IP, action, or user-agent…"
+          value={searchQuery}
+          onChange={(e) => dispatch(setAuditSearchQuery(e.target.value))}
+          aria-label="Search audit logs"
+          sx={{
+            flex: 1,
+            minWidth: 0,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              bgcolor: 'background.containerLow',
+            },
+          }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <MaterialSymbol name="search" sx={{ fontSize: 22, color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchQuery ? (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    aria-label="Clear search"
+                    onClick={() => dispatch(setAuditSearchQuery(''))}
+                    edge="end"
+                  >
+                    <MaterialSymbol name="close" sx={{ fontSize: 18 }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null,
+            },
+          }}
+        />
+
+        <FormControl size="small" sx={{ minWidth: { xs: 1, sm: 220 }, flexShrink: 0 }}>
           <InputLabel id="audit-action-filter">Action type</InputLabel>
           <Select
             labelId="audit-action-filter"
             label="Action type"
             value={actionFilter}
-            onChange={(e) => onActionFilterChange(e.target.value as AuditActionFilter)}
+            onChange={(e) => dispatch(setAuditActionFilter(e.target.value as AuditActionFilter))}
           >
             {ACTION_OPTIONS.map((opt) => (
               <MenuItem key={opt.value} value={opt.value}>
@@ -114,10 +105,18 @@ export function AuditLogsFilters({
           </Select>
         </FormControl>
 
-        <Box sx={{ ml: { sm: 'auto' }, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: { xs: 'space-between', sm: 'flex-end' },
+            gap: 2,
+            flexShrink: 0,
+          }}
+        >
           {hasActiveFilters && (
-            <Typography variant="labelSm" color="text.secondary">
-              {resultCount} of {totalCount} entries
+            <Typography variant="labelSm" color="text.secondary" noWrap>
+              {resultCount} {resultCount === 1 ? 'entry' : 'entries'}
             </Typography>
           )}
           <Button size="small" onClick={onClear} disabled={!hasActiveFilters} sx={{ fontWeight: 500 }}>

@@ -1,10 +1,23 @@
 import { isAxiosError } from 'axios'
 import { api } from '../../../services/api/client'
-import type { AuditLogEntry, AuditLogsResponse } from '../types'
+import type { AuditAction, AuditLogEntry, AuditLogsResponse } from '../types'
 
-export async function fetchMyAuditLogs(limit = 50): Promise<AuditLogEntry[]> {
+export type FetchMyAuditLogsParams = {
+  limit?: number
+  action?: AuditAction
+  q?: string
+}
+
+export async function fetchMyAuditLogs(
+  params: FetchMyAuditLogsParams = {},
+): Promise<AuditLogEntry[]> {
+  const { limit = 100, action, q } = params
   const { data } = await api.get<AuditLogsResponse>('/api/auth/audit-logs', {
-    params: { limit },
+    params: {
+      limit,
+      ...(action ? { action } : {}),
+      ...(q?.trim() ? { q: q.trim() } : {}),
+    },
   })
   return data.logs ?? []
 }
