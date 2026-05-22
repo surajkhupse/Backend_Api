@@ -1,6 +1,8 @@
 import Box from '@mui/material/Box'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
+import { ROUTES } from '../../routes/paths'
 import {
+  AuthSuccessToast,
   DashboardFab,
   DashboardFooter,
   DashboardSidebar,
@@ -8,35 +10,41 @@ import {
 } from './components'
 
 export function DashboardLayout() {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        minHeight: '100vh',
-        bgcolor: 'background.default',
-        color: 'text.primary',
-        overflowX: 'hidden',
-        typography: 'bodyMd',
-      }}
-    >
-      <DashboardSidebar />
+  const { pathname } = useLocation()
+  const showFab = pathname === ROUTES.HOME
 
+  return (
+    <>
+      <AuthSuccessToast />
       <Box
-        component="main"
         sx={{
-          flex: 1,
           display: 'flex',
-          flexDirection: 'column',
           minHeight: '100vh',
-          minWidth: 0,
+          bgcolor: 'background.default',
+          color: 'text.primary',
+          overflowX: 'hidden',
+          typography: 'bodyMd',
         }}
       >
-        <DashboardTopBar />
-        <Outlet />
-        <DashboardFooter />
-      </Box>
+        <DashboardSidebar />
 
-      <DashboardFab />
-    </Box>
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
+            minWidth: 0,
+          }}
+        >
+          <DashboardTopBar />
+          <Outlet />
+          <DashboardFooter />
+        </Box>
+
+        {showFab ? <DashboardFab /> : null}
+      </Box>
+    </>
   )
 }

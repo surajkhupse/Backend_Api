@@ -2,8 +2,9 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import type { Types } from 'mongoose';
 import RefreshToken from '../../database/models/RefreshToken';
-import User from '../../database/models/User';
+import User, { type UserRole } from '../../database/models/User';
 import { issueAccessToken } from './issueJwt';
+import { parseUserRole } from '../rbac/roles';
 import { hashResetToken } from './passwordResetToken';
 
 function newRefreshPlain(): string {
@@ -51,11 +52,20 @@ function accessExpiresInSeconds(accessToken: string): number {
   return Math.max(0, exp - Math.floor(Date.now() / 1000));
 }
 
+async function resolveUserRole(userId: Types.ObjectId | string): Promise<UserRole> {
+  const user = await User.findById(userId).select('role').lean();
+  if (!user) {
+    throw new Error('USER_NOT_FOUND');
+  }
+  return parseUserRole(user.role);
+}
+
 export async function issueTokenPair(
   userId: Types.ObjectId | string,
   meta?: SessionMeta
 ): Promise<TokenPair> {
-  const accessToken = issueAccessToken(userId);
+  const role = await resolveUserRole(userId);
+  const accessToken = issueAccessToken(userId, role);
   const plainRefresh = newRefreshPlain();
   const tokenHash = hashRefreshToken(plainRefresh);
   const ttlMs =

@@ -1,7 +1,21 @@
-import type { AlertProps } from '@mui/material/Alert'
 import type { Components, Theme } from '@mui/material/styles'
 
+import type { PaletteColorKey, PaletteColorNoChannels } from '../palette'
 import { radius } from '../../tokens/radius'
+
+const OUTLINED_ALERT_COLORS: PaletteColorKey[] = ['success', 'error', 'warning', 'info']
+
+function outlinedAlertStyles(theme: Theme, color: PaletteColorKey) {
+  const palette = theme.palette[color] as unknown as PaletteColorNoChannels
+  return {
+    backgroundColor: palette.backgroundColorLight,
+    color: theme.palette.text.primary,
+    borderColor: palette.main,
+    '& .MuiAlert-icon': {
+      color: palette.main,
+    },
+  }
+}
 
 const MuiSnackbar: Components<Theme>['MuiSnackbar'] = {
   styleOverrides: {
@@ -13,32 +27,25 @@ const MuiSnackbar: Components<Theme>['MuiSnackbar'] = {
   },
 }
 
+/** MUI v9: use root selectors + variants — `outlined` / `standard` override slots were removed. */
 const MuiAlert: Components<Theme>['MuiAlert'] = {
+  defaultProps: {
+    variant: 'outlined',
+  },
   styleOverrides: {
-    root: {
-      borderRadius: radius.md,
-      fontWeight: 500,
-    },
-    standard: ({ ownerState, theme }) => {
-      const styles: Record<string, { backgroundColor: string; color: string }> = {
-        success: {
-          backgroundColor: theme.vars.palette.success.main,
-          color: theme.vars.palette.success.contrastText,
-        },
-        error: {
-          backgroundColor: theme.vars.palette.error.main,
-          color: theme.vars.palette.error.contrastText,
-        },
-        warning: {
-          backgroundColor: theme.vars.palette.warning.main,
-          color: theme.vars.palette.warning.contrastText,
-        },
+    root: ({ theme }) => {
+      const outlinedByColor = Object.fromEntries(
+        OUTLINED_ALERT_COLORS.map((color) => [
+          `&.MuiAlert-outlined.MuiAlert-color${color.charAt(0).toUpperCase()}${color.slice(1)}`,
+          outlinedAlertStyles(theme, color),
+        ]),
+      )
+
+      return {
+        borderRadius: radius.md,
+        fontWeight: 500,
+        ...outlinedByColor,
       }
-      const severity = ownerState.severity as AlertProps['severity']
-      if (severity && styles[severity]) {
-        return styles[severity]
-      }
-      return {}
     },
   },
 }

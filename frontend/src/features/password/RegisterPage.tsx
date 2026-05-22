@@ -5,7 +5,7 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { useNavigate } from 'react-router-dom'
 import { APP_BRAND_NAME } from '../../constants'
-import { ROUTES } from '../../routes/paths'
+import { navigateAfterRegister } from '../../routes/authNavigation'
 import { authMeshBackground, ThemeModeToggle } from '../../theme'
 import { RegisterForm } from './RegisterForm'
 
@@ -61,7 +61,7 @@ export function RegisterPage() {
             boxShadow: '0 8px 30px rgb(0 0 0 / 0.04)',
           }}
         >
-          <RegisterForm onSuccess={() => navigate(ROUTES.HOME, { replace: true })} />
+          <RegisterForm onSuccess={() => navigateAfterRegister(navigate)} />
         </Paper>
 
         <Stack

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Checkbox from '@mui/material/Checkbox'
@@ -14,6 +13,7 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
+import { TopRightToast } from '../../components/TopRightToast'
 import {
   getLoginErrorMessage,
   GoogleLogo,
@@ -33,8 +33,10 @@ export type LoginFormProps = {
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
   const dispatch = useAppDispatch()
-  const [apiError, setApiError] = useState<string | null>(null)
-  const [lockUntil, setLockUntil] = useState<string | null>(null)
+  const [toastOpen, setToastOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
+  const [toastDetail, setToastDetail] = useState<string | undefined>()
+  const [toastSeverity, setToastSeverity] = useState<'error' | 'warning'>('error')
   const [showPassword, setShowPassword] = useState(false)
 
   const {
@@ -43,6 +45,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
+    mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       email: '',
       password: '',
@@ -50,19 +54,29 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     },
   })
 
+  function showToast(message: string, severity: 'error' | 'warning' = 'error', detail?: string) {
+    setToastMessage(message)
+    setToastSeverity(severity)
+    setToastDetail(detail)
+    setToastOpen(true)
+  }
+
+  function closeToast() {
+    setToastOpen(false)
+  }
+
   const ssoUrl = googleSsoStartUrl()
 
   function handleGoogleSignIn() {
     if (!ssoUrl) {
-      setApiError('API URL is not configured. Set VITE_API_URL in your environment.')
+      showToast('API URL is not configured. Set VITE_API_URL in your environment.')
       return
     }
     window.location.href = ssoUrl
   }
 
   async function onSubmit(data: LoginFormValues) {
-    setApiError(null)
-    setLockUntil(null)
+    closeToast()
     try {
       const payload = await loginRequest({
         email: data.email,
@@ -79,14 +93,19 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     } catch (err) {
       if (isAccountLockedError(err)) {
         const body = err.response?.data
-        if (body) {
-          setLockUntil(body.lockUntil)
-          setApiError(body.message)
-        } else {
-          setApiError(getLoginErrorMessage(err))
-        }
+        const lockUntil = body?.lockUntil
+        showToast(
+          body?.message ?? 'Account temporarily locked.',
+          'warning',
+          lockUntil
+            ? `Unlocks after ${new Date(lockUntil).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              })}`
+            : undefined,
+        )
       } else {
-        setApiError(getLoginErrorMessage(err))
+        showToast(getLoginErrorMessage(err))
       }
     }
   }
@@ -97,6 +116,14 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   return (
     <>
+      <TopRightToast
+        open={toastOpen}
+        message={toastMessage}
+        severity={toastSeverity}
+        detail={toastDetail}
+        onClose={closeToast}
+      />
+
       <Button
         type="button"
         variant="outlined"
@@ -134,21 +161,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           or continue with email
         </Typography>
       </Divider>
-
-      {(apiError || lockUntil) && (
-        <Alert severity={lockUntil ? 'warning' : 'error'}>
-          {apiError}
-          {lockUntil && (
-            <Typography variant="labelSm" sx={{ mt: 1, display: 'block', opacity: 0.9 }}>
-              Unlocks after{' '}
-              {new Date(lockUntil).toLocaleString(undefined, {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}
-            </Typography>
-          )}
-        </Alert>
-      )}
 
       <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={3}>

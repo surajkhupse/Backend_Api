@@ -52,6 +52,7 @@ export const register = async (req: Request, res: Response): Promise<Response | 
       name,
       email,
       password: hashedPassword,
+      role: 'user',
     });
 
     const userPayload: RegisteredUserDto = {

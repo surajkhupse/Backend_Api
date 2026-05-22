@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import { MainLayout } from '../layouts/MainLayout'
+import { AuditLogsPage } from '../features/audit'
 import { DashboardPage } from '../features/dashboard'
 import { LoginPage } from '../features/login'
 import { ForgotPasswordPage, RegisterPage } from '../features/password'
@@ -16,6 +17,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute />}>
         <Route element={<MainLayout />}>
           <Route path={ROUTES.HOME} element={<DashboardPage />} />
+          <Route path={ROUTES.AUDIT_LOGS} element={<AuditLogsPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

@@ -1,7 +1,13 @@
+import { SessionExpiredHandler } from './components/SessionExpiredHandler'
 import { AppRoutes } from './routes'
 
 function App() {
-  return <AppRoutes />
+  return (
+    <>
+      <SessionExpiredHandler />
+      <AppRoutes />
+    </>
+  )
 }
 
 export default App

@@ -6,7 +6,7 @@ import ListItemButton from '@mui/material/ListItemButton'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { logoutRequest } from '../../auth'
 import { ROUTES } from '../../../routes/paths'
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'
@@ -16,11 +16,11 @@ import { layout } from '../../../theme/tokens/spacing'
 import { DASHBOARD_BRAND } from '../constants/dashboard'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: 'dashboard', active: true },
-  { label: 'Events', icon: 'calendar_today', active: false },
-  { label: 'Sessions', icon: 'video_library', active: false },
-  { label: 'Audit Logs', icon: 'receipt_long', active: false },
-  { label: 'Settings', icon: 'settings', active: false },
+  { label: 'Dashboard', icon: 'dashboard', path: ROUTES.HOME },
+  { label: 'Events', icon: 'calendar_today', path: null },
+  { label: 'Sessions', icon: 'video_library', path: null },
+  { label: 'Audit Logs', icon: 'receipt_long', path: ROUTES.AUDIT_LOGS },
+  { label: 'Settings', icon: 'settings', path: null },
 ] as const
 
 const FOOTER_NAV = [
@@ -30,6 +30,7 @@ const FOOTER_NAV = [
 
 export function DashboardSidebar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const dispatch = useAppDispatch()
   const auth = useAppSelector((state) => state.auth)
 
@@ -73,45 +74,47 @@ export function DashboardSidebar() {
       </Box>
 
       <List sx={{ flex: 1, px: 1.5, py: 0 }}>
-        {NAV_ITEMS.map((item) => (
-          <ListItemButton
-            key={item.label}
-            selected={item.active}
-            sx={{
-              py: 1.5,
-              px: 2,
-              mb: 0.5,
-              ...(item.active && {
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  left: 0,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  width: 4,
-                  height: 24,
-                  borderRadius: '0 4px 4px 0',
-                  bgcolor: 'primary.main',
-                },
-              }),
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <MaterialSymbol name={item.icon} sx={{ fontSize: 22 }} />
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Typography
-                  variant="bodyMd"
-                  sx={{ fontWeight: item.active ? 700 : 400 }}
-                >
-                  {item.label}
-                </Typography>
-              }
-            />
-          </ListItemButton>
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const active = item.path != null && location.pathname === item.path
+          return (
+            <ListItemButton
+              key={item.label}
+              selected={active}
+              disabled={item.path == null}
+              onClick={item.path != null ? () => navigate(item.path!) : undefined}
+              sx={{
+                py: 1.5,
+                px: 2,
+                mb: 0.5,
+                ...(active && {
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: 0,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    width: 4,
+                    height: 24,
+                    borderRadius: '0 4px 4px 0',
+                    bgcolor: 'primary.main',
+                  },
+                }),
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <MaterialSymbol name={item.icon} sx={{ fontSize: 22 }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Typography variant="bodyMd" sx={{ fontWeight: active ? 700 : 400 }}>
+                    {item.label}
+                  </Typography>
+                }
+              />
+            </ListItemButton>
+          )
+        })}
       </List>
 
       <Divider sx={{ mx: 1.5 }} />

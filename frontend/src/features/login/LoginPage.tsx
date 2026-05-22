@@ -1,10 +1,12 @@
-import { useEffect } from 'react'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
+import { TopRightToast } from '../../components/TopRightToast'
+import { navigateAfterLogin } from '../../routes/authNavigation'
 import { ROUTES } from '../../routes/paths'
 import { useAppSelector } from '../../store/hooks'
 import { authMeshBackground, MaterialSymbol, ThemeModeToggle } from '../../theme'
@@ -12,13 +14,22 @@ import { LoginForm } from './LoginForm'
 
 export function LoginPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const auth = useAppSelector((state) => state.auth)
+  const sessionExpired = searchParams.get('session') === 'expired'
+  const [sessionToastOpen, setSessionToastOpen] = useState(sessionExpired)
 
   useEffect(() => {
     if (auth?.accessToken) {
       navigate(ROUTES.HOME, { replace: true })
     }
   }, [auth?.accessToken, navigate])
+
+  useEffect(() => {
+    if (sessionExpired) {
+      setSessionToastOpen(true)
+    }
+  }, [sessionExpired])
 
   return (
     <Box
@@ -32,6 +43,13 @@ export function LoginPage() {
         position: 'relative',
       })}
     >
+      <TopRightToast
+        open={sessionToastOpen}
+        message="Your session expired. Please sign in again."
+        severity="info"
+        onClose={() => setSessionToastOpen(false)}
+      />
+
       <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
         <ThemeModeToggle />
       </Box>
@@ -51,10 +69,9 @@ export function LoginPage() {
             borderRadius: 1.5,
             p: 4,
             boxShadow: '0 8px 30px rgb(0 0 0 / 0.04)',
-            backdropFilter: 'blur(4px)',
           }}
         >
-          <LoginForm onSuccess={() => navigate(ROUTES.HOME, { replace: true })} />
+          <LoginForm onSuccess={() => navigateAfterLogin(navigate)} />
         </Paper>
 
         <Typography variant="bodySm" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>

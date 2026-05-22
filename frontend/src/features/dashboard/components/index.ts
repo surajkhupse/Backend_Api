@@ -1,3 +1,4 @@
+export { AuthSuccessToast } from './AuthSuccessToast'
 export { DashboardSidebar } from './DashboardSidebar'
 export { DashboardTopBar } from './DashboardTopBar'
 export { DashboardFooter } from './DashboardFooter'

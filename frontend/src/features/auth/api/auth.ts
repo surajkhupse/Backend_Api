@@ -1,34 +1,34 @@
 import { isAxiosError, type AxiosError } from 'axios'
-import { api } from '../../../services/api/client'
+import { getAccounts } from '../../../api/generated/accounts/accounts'
+import type {
+  AccountLockedResponse,
+  AuthTokensResponse,
+  Error,
+  LoginInput,
+  RegisterInput,
+  RegisterUserResponse,
+} from '../../../api/generated/models'
 
-export interface LoginRequest {
-  email: string
-  password: string
-  deviceName?: string
-}
+const accountsApi = getAccounts()
 
-export interface LoginSuccessBody {
-  statusCode: number
-  message: string
+export type LoginRequest = LoginInput
+/** Narrowed after successful sign-in (required token fields). */
+export type LoginSuccessBody = AuthTokensResponse & {
   accessToken: string
   refreshToken: string
   token: string
   expiresIn: number
 }
-
-export interface AccountLockedBody {
-  statusCode: number
-  message: string
+export type RegisterRequest = RegisterInput
+export type RegisterSuccessBody = RegisterUserResponse
+export type AccountLockedBody = AccountLockedResponse & {
   lockUntil: string
-}
-
-export interface ApiErrorBody {
-  statusCode: number
   message: string
 }
+export type ApiErrorBody = Error
 
 export async function loginRequest(body: LoginRequest): Promise<LoginSuccessBody> {
-  const { data } = await api.post<LoginSuccessBody>('/api/auth/login', {
+  const data = await accountsApi.authUserSignIn({
     ...body,
     email: body.email.trim().toLowerCase(),
     password: body.password.trim(),
@@ -36,31 +36,21 @@ export async function loginRequest(body: LoginRequest): Promise<LoginSuccessBody
   if (!data.accessToken || !data.refreshToken) {
     throw new Error('Sign-in succeeded but tokens were missing from the server response')
   }
-  return data
-}
-
-export interface RegisterRequest {
-  name: string
-  email: string
-  password: string
-}
-
-export interface RegisterSuccessBody {
-  statusCode: number
-  message: string
-  user: {
-    name: string
-    email: string
+  return {
+    ...data,
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+    token: data.token ?? data.accessToken,
+    expiresIn: data.expiresIn ?? 0,
   }
 }
 
 export async function registerRequest(body: RegisterRequest): Promise<RegisterSuccessBody> {
-  const { data } = await api.post<RegisterSuccessBody>('/api/auth/register', body)
-  return data
+  return accountsApi.register(body)
 }
 
 export async function logoutRequest(refreshToken: string): Promise<void> {
-  await api.post('/api/auth/logout', { refreshToken })
+  await accountsApi.logoutSession({ refreshToken })
 }
 
 export function getRegisterErrorMessage(error: unknown): string {
