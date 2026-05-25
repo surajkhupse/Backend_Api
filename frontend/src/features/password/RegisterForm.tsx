@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Alert from '@mui/material/Alert'
@@ -22,7 +22,7 @@ import { ROUTES } from '../../routes/paths'
 import { useAppDispatch } from '../../store/hooks'
 import { setTokens } from '../../store/slices/authSlice'
 import { MaterialSymbol } from '../../theme'
-import { getPasswordStrength } from './passwordStrength'
+import { PasswordValidation } from './PasswordValidation'
 import { registerFormSchema, type RegisterFormValues } from './registerFormSchema'
 
 export type RegisterFormProps = {
@@ -55,7 +55,6 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   })
 
   const passwordValue = watch('password') ?? ''
-  const strength = useMemo(() => getPasswordStrength(passwordValue), [passwordValue])
 
   async function onSubmit(data: RegisterFormValues) {
     setApiError(null)
@@ -201,35 +200,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               }}
             />
 
-            {passwordValue.length > 0 && (
-              <Box sx={{ mt: 1.5 }}>
-                <Stack direction="row" spacing={0.5} sx={{ mb: 1 }}>
-                  {[1, 2, 3, 4].map((bar) => (
-                    <Box
-                      key={bar}
-                      sx={{
-                        flex: 1,
-                        height: 4,
-                        borderRadius: 9999,
-                        bgcolor: bar <= strength.score ? 'primary.main' : 'divider',
-                        transition: 'background-color 200ms ease',
-                      }}
-                    />
-                  ))}
-                </Stack>
-                <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography
-                    variant="labelSm"
-                    color={strength.score >= 3 ? 'primary.main' : 'text.secondary'}
-                  >
-                    {strength.label}
-                  </Typography>
-                  {strength.score >= 4 && (
-                    <MaterialSymbol name="check_circle" sx={{ fontSize: 16, color: 'primary.main' }} />
-                  )}
-                </Stack>
-              </Box>
-            )}
+            <PasswordValidation password={passwordValue} />
           </Box>
 
           <Box sx={{ py: 1 }}>

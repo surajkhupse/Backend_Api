@@ -26,7 +26,8 @@ export const registerFormSchema = z.object({
         .min(8, 'Password must be at least 8 characters')
         .regex(/[a-z]/, 'Include a lowercase letter')
         .regex(/[A-Z]/, 'Include an uppercase letter')
-        .regex(/[0-9]/, 'Include a number'),
+        .regex(/[0-9]/, 'Include a number')
+        .regex(/[^a-zA-Z0-9]/, 'Include a special character'),
     ),
   acceptTerms: z.boolean().refine((value) => value === true, {
     message: 'You must accept the terms to continue',
