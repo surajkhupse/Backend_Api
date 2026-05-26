@@ -1,6 +1,5 @@
 export { RegisterForm } from './RegisterForm'
 export type { RegisterFormProps } from './RegisterForm'
 export { RegisterPage } from './RegisterPage'
-export { ForgotPasswordPage } from './ForgotPasswordPage'
 export { registerFormSchema, type RegisterFormValues } from './registerFormSchema'
 export { getPasswordStrength, type PasswordStrength } from './passwordStrength'

@@ -46,6 +46,11 @@ const MuiInputLabel: Components<Theme>['MuiInputLabel'] = {
       color: theme.vars.palette.text.secondary,
       '&.Mui-focused': { color: theme.vars.palette.primary.main },
     }),
+    shrink: ({ theme }) => ({
+      backgroundColor: theme.vars.palette.background.paper,
+      paddingInline: 6,
+      borderRadius: 2,
+    }),
   },
 }
 
