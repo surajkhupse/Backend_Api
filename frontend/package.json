@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "generate:openapi": "npm run openapi --prefix ../server",
-    "generate:api": "npm run generate:openapi && orval"
+    "generate:api": "npm run generate:openapi && orval",
+    "generate:slice": "node scripts/generate-slice.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
