@@ -15,7 +15,7 @@ import { LoginForm } from './LoginForm'
 export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const auth = useAppSelector((state) => state.auth)
+  const auth = useAppSelector((state) => state.auth.tokens)
   const sessionExpired = searchParams.get('session') === 'expired'
   const [sessionToastOpen, setSessionToastOpen] = useState(sessionExpired)
 

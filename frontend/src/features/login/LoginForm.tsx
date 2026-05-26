@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Box from '@mui/material/Box'
@@ -14,15 +14,10 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
 import { TopRightToast } from '../../components/TopRightToast'
-import {
-  getLoginErrorMessage,
-  GoogleLogo,
-  isAccountLockedError,
-  loginRequest,
-} from '../auth'
+import { GoogleLogo } from '../auth'
 import { ROUTES } from '../../routes/paths'
-import { useAppDispatch } from '../../store/hooks'
-import { setTokens } from '../../store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { clearAuthError, login } from '../../store/slices/authSlice'
 import { googleSsoStartUrl } from '../../utils/apiBaseUrl'
 import { MaterialSymbol } from '../../theme'
 import { loginFormSchema, type LoginFormValues } from './loginFormSchema'
@@ -33,6 +28,7 @@ export type LoginFormProps = {
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
   const dispatch = useAppDispatch()
+  const { loading: authLoading, error: authError, accountLocked } = useAppSelector((state) => state.auth)
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastDetail, setToastDetail] = useState<string | undefined>()
@@ -54,49 +50,13 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     },
   })
 
-  function showToast(message: string, severity: 'error' | 'warning' = 'error', detail?: string) {
-    setToastMessage(message)
-    setToastSeverity(severity)
-    setToastDetail(detail)
-    setToastOpen(true)
-  }
-
-  function closeToast() {
-    setToastOpen(false)
-  }
-
-  const ssoUrl = googleSsoStartUrl()
-
-  function handleGoogleSignIn() {
-    if (!ssoUrl) {
-      showToast('API URL is not configured. Set VITE_API_URL in your environment.')
-      return
-    }
-    window.location.href = ssoUrl
-  }
-
-  async function onSubmit(data: LoginFormValues) {
-    closeToast()
-    try {
-      const payload = await loginRequest({
-        email: data.email,
-        password: data.password,
-      })
-      dispatch(
-        setTokens({
-          accessToken: payload.accessToken,
-          refreshToken: payload.refreshToken,
-          rememberMe: Boolean(data.rememberMe),
-        }),
-      )
-      onSuccess?.()
-    } catch (err) {
-      if (isAccountLockedError(err)) {
-        const body = err.response?.data
-        const lockUntil = body?.lockUntil
-        showToast(
-          body?.message ?? 'Account temporarily locked.',
-          'warning',
+  useEffect(() => {
+    if (authError) {
+      if (accountLocked) {
+        const lockUntil = accountLocked.lockUntil
+        setToastMessage(accountLocked.message ?? 'Account temporarily locked.')
+        setToastSeverity('warning')
+        setToastDetail(
           lockUntil
             ? `Unlocks after ${new Date(lockUntil).toLocaleString(undefined, {
                 dateStyle: 'medium',
@@ -105,8 +65,40 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             : undefined,
         )
       } else {
-        showToast(getLoginErrorMessage(err))
+        setToastMessage(authError)
+        setToastSeverity('error')
+        setToastDetail(undefined)
       }
+      setToastOpen(true)
+    }
+  }, [authError, accountLocked])
+
+  function closeToast() {
+    setToastOpen(false)
+    dispatch(clearAuthError())
+  }
+
+  const ssoUrl = googleSsoStartUrl()
+
+  function handleGoogleSignIn() {
+    if (!ssoUrl) {
+      setToastMessage('API URL is not configured. Set VITE_API_URL in your environment.')
+      setToastSeverity('error')
+      setToastOpen(true)
+      return
+    }
+    window.location.href = ssoUrl
+  }
+
+  async function onSubmit(data: LoginFormValues) {
+    closeToast()
+    const result = await dispatch(login({
+      email: data.email,
+      password: data.password,
+      rememberMe: Boolean(data.rememberMe),
+    }))
+    if (login.fulfilled.match(result)) {
+      onSuccess?.()
     }
   }
 
@@ -256,10 +248,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             variant="contained"
             color="primary"
             fullWidth
-            disabled={isSubmitting}
+            disabled={isSubmitting || authLoading}
             sx={{ py: 2, fontWeight: 700 }}
           >
-            {isSubmitting ? (
+            {(isSubmitting || authLoading) ? (
               <CircularProgress size={22} color="inherit" />
             ) : (
               'Sign in'

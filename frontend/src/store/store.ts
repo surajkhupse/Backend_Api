@@ -1,13 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit'
 import appReducer from './slices/appSlice'
-import auditFilterReducer from './slices/auditFilterSlice'
+import auditReducer from './slices/auditSlice'
 import authReducer from './slices/authSlice'
+import forgotPasswordReducer from './slices/forgotPasswordSlice'
 
 export const store = configureStore({
   reducer: {
     app: appReducer,
     auth: authReducer,
-    auditFilter: auditFilterReducer,
+    audit: auditReducer,
+    forgotPassword: forgotPasswordReducer,
   },
 })
 

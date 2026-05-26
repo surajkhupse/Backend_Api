@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Alert from '@mui/material/Alert'
@@ -11,16 +10,13 @@ import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
 import { ROUTES } from '../../routes/paths'
 import { MaterialSymbol } from '../../theme'
-import {
-  forgotPasswordRequest,
-  getForgotPasswordErrorMessage,
-} from './api/forgotPassword'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { forgotPassword } from '../../store/slices/forgotPasswordSlice'
 import { forgotPasswordSchema, type ForgotPasswordValues } from './forgotPasswordSchema'
 
 export function ForgotPasswordForm() {
-  const [apiError, setApiError] = useState<string | null>(null)
-  const [submitted, setSubmitted] = useState(false)
-  const [submittedEmail, setSubmittedEmail] = useState('')
+  const dispatch = useAppDispatch()
+  const { loading, error: apiError, submitted, submittedEmail } = useAppSelector((state) => state.forgotPassword)
 
   const {
     register,
@@ -32,14 +28,7 @@ export function ForgotPasswordForm() {
   })
 
   async function onSubmit(data: ForgotPasswordValues) {
-    setApiError(null)
-    try {
-      await forgotPasswordRequest(data.email)
-      setSubmittedEmail(data.email)
-      setSubmitted(true)
-    } catch (err) {
-      setApiError(getForgotPasswordErrorMessage(err))
-    }
+    dispatch(forgotPassword(data.email))
   }
 
   const emailReg = register('email')
@@ -82,7 +71,7 @@ export function ForgotPasswordForm() {
           <Button
             variant="outlined"
             fullWidth
-            disabled={isSubmitting}
+            disabled={isSubmitting || loading}
             onClick={handleSubmit(onSubmit)}
             sx={{ py: 1.5 }}
           >
@@ -151,7 +140,7 @@ export function ForgotPasswordForm() {
             variant="contained"
             color="primary"
             fullWidth
-            disabled={isSubmitting}
+            disabled={isSubmitting || loading}
             sx={{
               py: 1.5,
               fontWeight: 600,
@@ -159,7 +148,7 @@ export function ForgotPasswordForm() {
               '&:active': { transform: 'scale(0.98)' },
             }}
           >
-            {isSubmitting ? <CircularProgress size={22} color="inherit" /> : 'Send reset link'}
+            {(isSubmitting || loading) ? <CircularProgress size={22} color="inherit" /> : 'Send reset link'}
           </Button>
         </Stack>
       </Box>

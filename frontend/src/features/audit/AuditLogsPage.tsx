@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -6,55 +6,31 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
-import { clearAuditFilters } from '../../store/slices/auditFilterSlice'
+import { clearAuditFilters, clearAuditError, fetchAuditLogs } from '../../store/slices/auditSlice'
 import { MaterialSymbol } from '../../theme'
 import { layout } from '../../theme/tokens/spacing'
-import { fetchMyAuditLogs, getAuditLogsErrorMessage } from './api/auditLogs'
 import { AuditLogsEmptyState } from './components/AuditLogsEmptyState'
 import { AuditLogsFilters } from './components/AuditLogsFilters'
 import { getAuditLogPageCount, paginateAuditLogs } from './components/AuditLogsPagination'
 import { AuditLogsStatCards } from './components/AuditLogsStatCards'
 import { AuditLogsTable } from './components/AuditLogsTable'
-import type { AuditLogEntry } from './types'
 import { exportAuditLogsCsv } from './utils/auditLogPresentation'
 
 export function AuditLogsPage() {
   const dispatch = useAppDispatch()
-  const actionFilter = useAppSelector((state) => state.auditFilter.actionFilter)
-  const searchQuery = useAppSelector((state) => state.auditFilter.searchQuery)
+  const { logs, loading, error, actionFilter, searchQuery } = useAppSelector((state) => state.audit)
   const debouncedSearch = useDebouncedValue(searchQuery, 300)
 
-  const [logs, setLogs] = useState<AuditLogEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
 
-  const loadLogs = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await fetchMyAuditLogs({
-        limit: 100,
-        action: actionFilter === 'all' ? undefined : actionFilter,
-        q: debouncedSearch,
-      })
-      setLogs(data)
-      setPage(1)
-    } catch (err) {
-      setError(getAuditLogsErrorMessage(err))
-      setLogs([])
-    } finally {
-      setLoading(false)
-    }
-  }, [actionFilter, debouncedSearch])
-
   useEffect(() => {
-    void loadLogs()
-  }, [loadLogs])
-
-  useEffect(() => {
+    dispatch(fetchAuditLogs({
+      limit: 100,
+      action: actionFilter === 'all' ? undefined : actionFilter,
+      q: debouncedSearch,
+    }))
     setPage(1)
-  }, [actionFilter, debouncedSearch])
+  }, [dispatch, actionFilter, debouncedSearch])
 
   useEffect(() => {
     const maxPage = getAuditLogPageCount(logs.length)
@@ -64,6 +40,14 @@ export function AuditLogsPage() {
   const pagedLogs = useMemo(() => paginateAuditLogs(logs, page), [logs, page])
 
   const hasFilters = actionFilter !== 'all' || searchQuery.trim().length > 0
+
+  function handleRefresh() {
+    dispatch(fetchAuditLogs({
+      limit: 100,
+      action: actionFilter === 'all' ? undefined : actionFilter,
+      q: debouncedSearch,
+    }))
+  }
 
   function handleClearFilters() {
     dispatch(clearAuditFilters())
@@ -106,7 +90,7 @@ export function AuditLogsPage() {
           <Button
             variant="outlined"
             startIcon={<MaterialSymbol name="refresh" />}
-            onClick={() => void loadLogs()}
+            onClick={handleRefresh}
             disabled={loading}
           >
             Refresh
@@ -123,7 +107,7 @@ export function AuditLogsPage() {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => dispatch(clearAuditError())}>
           {error}
         </Alert>
       )}

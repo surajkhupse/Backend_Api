@@ -7,10 +7,9 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { logoutRequest } from '../../auth'
 import { ROUTES } from '../../../routes/paths'
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'
-import { clearTokens } from '../../../store/slices/authSlice'
+import { logout } from '../../../store/slices/authSlice'
 import { MaterialSymbol } from '../../../theme'
 import { layout } from '../../../theme/tokens/spacing'
 import { DASHBOARD_BRAND } from '../constants/dashboard'
@@ -32,18 +31,8 @@ export function DashboardSidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useAppDispatch()
-  const auth = useAppSelector((state) => state.auth)
-
   async function handleLogout() {
-    const refreshToken = auth?.refreshToken
-    if (refreshToken) {
-      try {
-        await logoutRequest(refreshToken)
-      } catch {
-        /* clear local session even if API fails */
-      }
-    }
-    dispatch(clearTokens())
+    await dispatch(logout())
     navigate(ROUTES.LOGIN, { replace: true })
   }
 

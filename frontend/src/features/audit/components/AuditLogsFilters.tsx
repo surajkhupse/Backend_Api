@@ -10,7 +10,7 @@ import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'
-import { setAuditActionFilter, setAuditSearchQuery } from '../../../store/slices/auditFilterSlice'
+import { setAuditActionFilter, setAuditSearchQuery } from '../../../store/slices/auditSlice'
 import { MaterialSymbol } from '../../../theme'
 import type { AuditActionFilter } from '../types'
 
@@ -29,8 +29,8 @@ const ACTION_OPTIONS: { value: AuditActionFilter; label: string }[] = [
 
 export function AuditLogsFilters({ resultCount, onClear }: AuditLogsFiltersProps) {
   const dispatch = useAppDispatch()
-  const actionFilter = useAppSelector((state) => state.auditFilter.actionFilter)
-  const searchQuery = useAppSelector((state) => state.auditFilter.searchQuery)
+  const actionFilter = useAppSelector((state) => state.audit.actionFilter)
+  const searchQuery = useAppSelector((state) => state.audit.searchQuery)
   const hasActiveFilters = actionFilter !== 'all' || searchQuery.trim().length > 0
 
   return (

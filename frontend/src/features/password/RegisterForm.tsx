@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Alert from '@mui/material/Alert'
@@ -13,14 +13,9 @@ import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { Link as RouterLink } from 'react-router-dom'
-import {
-  getRegisterErrorMessage,
-  loginRequest,
-  registerRequest,
-} from '../auth'
 import { ROUTES } from '../../routes/paths'
-import { useAppDispatch } from '../../store/hooks'
-import { setTokens } from '../../store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { clearAuthError, registerUser } from '../../store/slices/authSlice'
 import { MaterialSymbol } from '../../theme'
 import { PasswordValidation } from './PasswordValidation'
 import { registerFormSchema, type RegisterFormValues } from './registerFormSchema'
@@ -35,6 +30,7 @@ function buildDisplayName(fullName: string, companyName: string): string {
 
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const dispatch = useAppDispatch()
+  const { loading: authLoading, error: authError } = useAppSelector((state) => state.auth)
   const [apiError, setApiError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
@@ -54,32 +50,23 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     },
   })
 
+  useEffect(() => {
+    if (authError) setApiError(authError)
+  }, [authError])
+
   const passwordValue = watch('password') ?? ''
 
   async function onSubmit(data: RegisterFormValues) {
     setApiError(null)
-    try {
-      await registerRequest({
-        name: buildDisplayName(data.fullName, data.companyName),
-        email: data.email,
-        password: data.password,
-      })
-
-      const tokens = await loginRequest({
-        email: data.email,
-        password: data.password,
-      })
-
-      dispatch(
-        setTokens({
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
-          rememberMe: false,
-        }),
-      )
+    dispatch(clearAuthError())
+    const result = await dispatch(registerUser({
+      name: buildDisplayName(data.fullName, data.companyName),
+      email: data.email,
+      password: data.password,
+      rememberMe: false,
+    }))
+    if (registerUser.fulfilled.match(result)) {
       onSuccess?.()
-    } catch (err) {
-      setApiError(getRegisterErrorMessage(err))
     }
   }
 
@@ -253,7 +240,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
             variant="contained"
             color="primary"
             fullWidth
-            disabled={isSubmitting}
+            disabled={isSubmitting || authLoading}
             sx={{
               py: 1.5,
               fontWeight: 600,
@@ -261,7 +248,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               '&:active': { transform: 'scale(0.98)' },
             }}
           >
-            {isSubmitting ? <CircularProgress size={22} color="inherit" /> : 'Create Account'}
+            {(isSubmitting || authLoading) ? <CircularProgress size={22} color="inherit" /> : 'Create Account'}
           </Button>
         </Stack>
       </Box>
