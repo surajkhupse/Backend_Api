@@ -3,6 +3,7 @@ import appReducer from './slices/appSlice'
 import auditReducer from './slices/auditSlice'
 import authReducer from './slices/authSlice'
 import forgotPasswordReducer from './slices/forgotPasswordSlice'
+import tenantReducer from './slices/tenantSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     auth: authReducer,
     audit: auditReducer,
     forgotPassword: forgotPasswordReducer,
+    tenants: tenantReducer,
   },
 })
 

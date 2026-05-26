@@ -30,6 +30,8 @@ import type {
   ResetPasswordBodyDto,
 } from './auth.types';
 import type { RegisterBodyDto, RegisteredUserDto } from '../users/user.types';
+import mongoose, { Types } from 'mongoose';
+import { IUser } from '../users/user.model';
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown error';
@@ -52,16 +54,11 @@ export const register = async (req: Request, res: Response): Promise<Response | 
       name,
       email,
       password: hashedPassword,
-      role: 'user',
+      role: 'member',
+      tenant : undefined,
     });
 
-    const userPayload: RegisteredUserDto = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      createdAt: user.createdAt,
-    };
-    return reply(res, 201, 'User created successfully', { user: userPayload });
+    return reply(res, 201, 'User created successfully', { user: user.toObject() as IUser });
   } catch (error) {
     return reply(res, 500, errorMessage(error));
   }

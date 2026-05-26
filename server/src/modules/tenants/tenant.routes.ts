@@ -1,0 +1,134 @@
+import express from "express";
+import { authenticate } from "../../middlewares/auth.middleware";
+import { authorize } from "../../middlewares/role.middleware";
+import { create, list, getById, changedStatus, deleteById } from "./tenant.controller";
+
+const router = express.Router();
+
+/**
+ * @openapi
+ * /api/tenants:
+ *   post:
+ *     tags: [Tenants]
+ *     summary: Create a new tenant
+ *     operationId: createTenant
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name]
+ *             properties:
+ *               name:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Tenant created
+ *       400:
+ *         description: Validation error
+ *       403:
+ *         description: Forbidden
+ */
+router.post('/', authenticate, authorize('tenants:create'), create);
+
+/**
+ * @openapi
+ * /api/tenants:
+ *   get:
+ *     tags: [Tenants]
+ *     summary: List all tenants (superadmin only)
+ *     operationId: listTenants
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Tenants list
+ *       403:
+ *         description: Forbidden
+ */
+router.get('/', authenticate, authorize('tenants:read_any'), list);
+
+/**
+ * @openapi
+ * /api/tenants/{id}:
+ *   get:
+ *     tags: [Tenants]
+ *     summary: Get tenant by ID
+ *     operationId: getTenantById
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tenant found
+ *       404:
+ *         description: Tenant not found
+ */
+router.get('/:id', authenticate, authorize('tenants:read_any'), getById);
+
+/**
+ * @openapi
+ * /api/tenants/{id}/status:
+ *   put:
+ *     tags: [Tenants]
+ *     summary: Change tenant status (suspend/activate)
+ *     operationId: changeTenantStatus
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [status]
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive, suspended]
+ *     responses:
+ *       200:
+ *         description: Status changed
+ *       404:
+ *         description: Tenant not found
+ */
+router.put('/:id/status', authenticate, authorize('tenants:suspend'), changedStatus);
+
+/**
+ * @openapi
+ * /api/tenants/{id}:
+ *   delete:
+ *     tags: [Tenants]
+ *     summary: Delete a tenant
+ *     operationId: deleteTenant
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Tenant deleted
+ *       404:
+ *         description: Tenant not found
+ */
+router.delete('/:id', authenticate, authorize('tenants:delete'), deleteById);
+
+export default router;

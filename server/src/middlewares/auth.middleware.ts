@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import type { Request, Response, NextFunction } from 'express';
-import { parseUserRole } from '../modules/roles/role.model';
 import { reply } from '../utils/response';
+import { UserRole } from '../modules/users/user.model';
 
 export function authenticate(req: Request, res: Response, next: NextFunction): void | Response {
   const secret = process.env.JWT_SECRET;
@@ -21,6 +21,7 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     const decoded = jwt.verify(token, secret) as jwt.JwtPayload & {
       id?: unknown;
       role?: unknown;
+      tenantId?: unknown;
     };
     const id = decoded.id;
     const idStr = typeof id === 'string' ? id : id != null ? String(id) : '';
@@ -28,7 +29,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       return reply(res, 401, 'Invalid token');
     }
     req.authUserId = new mongoose.Types.ObjectId(idStr);
-    req.authRole = parseUserRole(decoded.role);
+    req.authRole = decoded.role as UserRole;
+    const tenantId = decoded.tenantId;
+    if (typeof tenantId === 'string' && mongoose.Types.ObjectId.isValid(tenantId)) {
+      req.authTenant = new mongoose.Types.ObjectId(tenantId);
+    }
     next();
   } catch {
     return reply(res, 401, 'Invalid or expired token');

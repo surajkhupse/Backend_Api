@@ -7,6 +7,7 @@ declare global {
       /** Set by `authenticate` middleware after validating Bearer JWT */
       authUserId?: Types.ObjectId;
       authRole?: UserRole;
+      authTenant?: Types.ObjectId;
     }
   }
 }

@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import type { Request } from 'express';
-import type { Types } from 'mongoose';
+import { Types } from 'mongoose';
 import RefreshToken from './refreshToken.model';
-import type { UserRole } from '../users/user.model';
+import { UserRole } from '../users/user.model'; 
 import { issueAccessToken } from '../../utils/jwt';
 import { resolveUserRole } from '../roles/role.service';
 import AuditLog, { type AuditAction } from './audit.model';
@@ -81,8 +81,8 @@ export async function issueTokenPair(
   userId: Types.ObjectId | string,
   meta?: SessionMeta
 ): Promise<TokenPair> {
-  const role = await resolveUserRole(userId);
-  const accessToken = issueAccessToken(userId, role);
+  const { role, tenantId } = await resolveUserRole(userId);
+  const accessToken = issueAccessToken(userId, role, tenantId);
   const plainRefresh = crypto.randomBytes(48).toString('hex');
   const tokenHash = hashToken(plainRefresh);
   const ttlMs =
