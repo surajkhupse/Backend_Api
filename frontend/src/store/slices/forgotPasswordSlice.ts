@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 import { isAxiosError } from 'axios'
-import { getAccounts } from '../../api/generated/accounts/accounts'
+import { getAccounts } from '../../api/generated/accounts'
 
 const accountsApi = getAccounts()
 

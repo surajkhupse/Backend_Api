@@ -8,7 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "generate:openapi": "npm run openapi --prefix ../backend",
+    "generate:openapi": "npm run openapi --prefix ../server",
     "generate:api": "npm run generate:openapi && orval"
   },
   "dependencies": {

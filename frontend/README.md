@@ -11,13 +11,13 @@ React 19 + TypeScript SPA built with Vite. Uses Material UI for the design syste
 | State | Redux Toolkit (auth tokens) |
 | Forms | react-hook-form + Zod |
 | HTTP | Axios (shared instance + Orval-generated clients) |
-| API types | Orval from `backend/openapi.generated.json` |
+| API types | Orval from `server/openapi.generated.json` |
 
 ## Prerequisites
 
 - Node.js 18+
 - npm
-- Backend API running (default `http://127.0.0.1:5000`) — see [backend/README.md](../backend/README.md)
+- Backend API running (default `http://127.0.0.1:5000`) — see [server/README.md](../server/README.md)
 
 ## Quick start
 
@@ -30,8 +30,8 @@ cp .env.example .env
 Generate the API client (requires backend OpenAPI file):
 
 ```bash
-# From repo root — backend spec first, then frontend client
-cd ../backend && npm run openapi
+# From repo root — server spec first, then frontend client
+cd ../server && npm run openapi
 cd ../frontend && npm run generate:api
 ```
 
@@ -117,7 +117,7 @@ Protection: `ProtectedRoute` checks Redux `auth.accessToken`; unauthenticated us
 
 Configuration: `orval.config.ts`
 
-- **Input:** `../backend/openapi.generated.json` (generate with `npm run openapi` in backend).
+- **Input:** `../server/openapi.generated.json` (generate with `npm run openapi` in server).
 - **Output:** `src/api/generated/` (accounts, events, models).
 - **Mutator:** All generated calls use `customInstance` in `orvalMutator.ts`, which routes through `services/api/client.ts` (base URL, JSON headers, Bearer token).
 
@@ -126,7 +126,7 @@ Feature code should prefer thin wrappers in `features/auth/api/auth.ts` (trimmin
 **Regenerate workflow:**
 
 ```bash
-cd ../backend && npm run openapi
+cd ../server && npm run openapi
 cd ../frontend && npm run generate:api
 ```
 
@@ -168,7 +168,7 @@ npm run lint
 
 ## Working with the backend
 
-1. Start MongoDB and the backend (`npm run dev` in `backend/`).
+1. Start MongoDB and the backend (`npm run dev` in `server/`).
 2. Match `VITE_API_URL` to backend `PORT` (default 5000).
 3. Regenerate OpenAPI + client when API contracts change.
 
@@ -197,4 +197,4 @@ Set `VITE_API_URL` at build time to the production API URL.
 - Path aliases (`@/features/...`) in `tsconfig` + Vite
 - Vitest + Testing Library for forms and auth helpers
 
-See [backend/README.md](../backend/README.md) for API and environment details.
+See [server/README.md](../server/README.md) for API and environment details.
