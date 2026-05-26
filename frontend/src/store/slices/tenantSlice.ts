@@ -1,8 +1,24 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
 import { isAxiosError } from 'axios'
-import { tenantApi, type Tenant } from '../../services/api/tenantApi'
+import { getTenants } from '../../api/generated/tenants/tenants'
+import type {
+  ChangeTenantStatusBodyStatus,
+  CreateTenantBody,
+} from '../../api/generated/models'
 
-export type { Tenant } from '../../services/api/tenantApi'
+const tenantsApi = getTenants()
+
+export interface Tenant {
+  _id: string
+  name: string
+  slug: string
+  domain?: string
+  status: 'active' | 'inactive' | 'suspended'
+  owner: string
+  settings: Record<string, unknown>
+  createdAt: string
+  updatedAt: string
+}
 
 export interface TenantState {
   tenants: Tenant[]
@@ -19,8 +35,8 @@ const initialState: TenantState = {
 }
 
 function extractError(err: unknown, fallback: string): string {
-  if (isAxiosError(err)) {
-    const msg = (err.response?.data as { message?: string } | undefined)?.message
+  if (isAxiosError<{ message?: string }>(err)) {
+    const msg = err.response?.data?.message
     if (typeof msg === 'string') return msg
     if (err.response?.status === 403) return 'You do not have permission for this action.'
     if (err.code === 'ERR_NETWORK') return 'Cannot reach the API.'
@@ -33,7 +49,7 @@ export const fetchTenants = createAsyncThunk<Tenant[], void, { rejectValue: stri
   'tenants/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const data = await tenantApi.list()
+      const data = (await tenantsApi.listTenants()) as unknown as { tenants: Tenant[] }
       return data.tenants
     } catch (err) {
       return rejectWithValue(extractError(err, 'Failed to load tenants'))
@@ -41,11 +57,11 @@ export const fetchTenants = createAsyncThunk<Tenant[], void, { rejectValue: stri
   },
 )
 
-export const createTenant = createAsyncThunk<Tenant, { name: string }, { rejectValue: string }>(
+export const createTenant = createAsyncThunk<Tenant, CreateTenantBody, { rejectValue: string }>(
   'tenants/create',
   async (body, { rejectWithValue }) => {
     try {
-      const data = await tenantApi.create(body.name)
+      const data = (await tenantsApi.createTenant(body)) as unknown as { tenant: Tenant }
       return data.tenant
     } catch (err) {
       return rejectWithValue(extractError(err, 'Failed to create tenant'))
@@ -55,11 +71,13 @@ export const createTenant = createAsyncThunk<Tenant, { name: string }, { rejectV
 
 export const changeTenantStatus = createAsyncThunk<
   Tenant,
-  { id: string; status: Tenant['status'] },
+  { id: string; status: ChangeTenantStatusBodyStatus },
   { rejectValue: string }
 >('tenants/changeStatus', async ({ id, status }, { rejectWithValue }) => {
   try {
-    const data = await tenantApi.changeStatus(id, status)
+    const data = (await tenantsApi.changeTenantStatus(id, { status })) as unknown as {
+      tenant: Tenant
+    }
     return data.tenant
   } catch (err) {
     return rejectWithValue(extractError(err, 'Failed to update tenant status'))
@@ -70,7 +88,7 @@ export const deleteTenant = createAsyncThunk<string, { id: string }, { rejectVal
   'tenants/delete',
   async ({ id }, { rejectWithValue }) => {
     try {
-      await tenantApi.delete(id)
+      await tenantsApi.deleteTenant(id)
       return id
     } catch (err) {
       return rejectWithValue(extractError(err, 'Failed to delete tenant'))
@@ -82,7 +100,7 @@ export const fetchTenantById = createAsyncThunk<Tenant, { id: string }, { reject
   'tenants/fetchById',
   async ({ id }, { rejectWithValue }) => {
     try {
-      const data = await tenantApi.getById(id)
+      const data = (await tenantsApi.getTenantById(id)) as unknown as { tenant: Tenant }
       return data.tenant
     } catch (err) {
       return rejectWithValue(extractError(err, 'Tenant not found'))
