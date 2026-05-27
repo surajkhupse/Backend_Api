@@ -1,5 +1,7 @@
 export { DashboardLayout } from './DashboardLayout'
 export { DashboardPage, HomePage } from './DashboardPage'
+export { TenantDashboardPage } from './TenantDashboardPage'
+export { AdminDashboardPage } from './AdminDashboardPage'
 export * from './components'
 export * from './constants/dashboard'
 export * from './data/dashboardMockData'

@@ -14,6 +14,7 @@ import {
   readPersistedAuth,
   setRememberMe,
 } from '../../features/auth/utils/authStorage'
+import { syncRoleFromAccessToken, type UserRole } from '../../features/auth/utils/jwt'
 
 const accountsApi = getAccounts()
 
@@ -33,6 +34,8 @@ export type AccountLockedBody = AccountLockedResponse & {
 
 export interface AuthState {
   tokens: AuthTokens | null
+  /** From JWT at login / app load — drives sidebar and redirects */
+  role: UserRole | null
   loading: boolean
   error: string | null
   accountLocked: AccountLockedBody | null
@@ -158,6 +161,7 @@ const persistedTokens: AuthTokens | null = persisted
 
 const initialState: AuthState = {
   tokens: persistedTokens,
+  role: syncRoleFromAccessToken(persistedTokens?.accessToken ?? null),
   loading: false,
   error: null,
   accountLocked: null,
@@ -171,10 +175,12 @@ export const authSlice = createSlice({
       const { accessToken, refreshToken, rememberMe = false } = action.payload
       persistTokens(accessToken, refreshToken, rememberMe)
       state.tokens = { accessToken, refreshToken }
+      state.role = syncRoleFromAccessToken(accessToken)
     },
     clearTokens: (state) => {
       clearStoredTokens()
       state.tokens = null
+      state.role = null
     },
     clearAuthError: (state) => {
       state.error = null
@@ -194,6 +200,7 @@ export const authSlice = createSlice({
           accessToken: action.payload.accessToken,
           refreshToken: action.payload.refreshToken,
         }
+        state.role = syncRoleFromAccessToken(action.payload.accessToken)
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
@@ -218,6 +225,7 @@ export const authSlice = createSlice({
           accessToken: action.payload.accessToken,
           refreshToken: action.payload.refreshToken,
         }
+        state.role = syncRoleFromAccessToken(action.payload.accessToken)
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false
@@ -225,10 +233,12 @@ export const authSlice = createSlice({
       })
       .addCase(logout.fulfilled, (state) => {
         state.tokens = null
+        state.role = null
         state.loading = false
       })
       .addCase(logout.rejected, (state) => {
         state.tokens = null
+        state.role = null
         state.loading = false
       })
   },

@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
 import { reply } from "../../utils/response";
+import User from "../users/user.model";
 import { createTenant, listTenants, getTenant, updateTenantStatus, deleteTenant } from "./tenant.service";
 import { TenantStatus } from "./tenant.model";
+import type { UserRole } from "../users/user.model";
 
 function errorMessage(error: unknown): string {
     return error instanceof Error ? error.message : "Unknown error";
@@ -9,13 +11,68 @@ function errorMessage(error: unknown): string {
 
 export const create = async (req: Request, res: Response): Promise<Response | void> => {
    try {
-    const { name } = req.body as { name? : string};
-    if (!name) {
+    const { name, domain, status, ownerEmail, ownerId } = req.body as {
+      name?: string;
+      domain?: string;
+      status?: string;
+      ownerEmail?: string;
+      ownerId?: string;
+    };
+
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
         return reply(res, 400, "Name is required");
     }
-    const tenant = await createTenant(name, req.authUserId!);
+
+    if (status && !["active", "inactive", "suspended"].includes(status)) {
+      return reply(res, 400, "Invalid status");
+    }
+
+    const authRole = req.authRole as UserRole | undefined;
+    let resolvedOwnerId = req.authUserId!;
+
+    if (ownerEmail?.trim() || ownerId?.trim()) {
+      if (authRole !== "superadmin") {
+        return reply(res, 403, "Only superadmin can assign a tenant owner");
+      }
+      if (ownerEmail?.trim()) {
+        const owner = await User.findOne({ email: ownerEmail.trim().toLowerCase() });
+        if (!owner) {
+          return reply(res, 404, "Owner user not found for that email");
+        }
+        if (owner.role === "superadmin") {
+          return reply(res, 400, "Superadmin cannot be assigned as tenant owner");
+        }
+        resolvedOwnerId = owner._id;
+      } else if (ownerId?.trim()) {
+        const owner = await User.findById(ownerId.trim());
+        if (!owner) {
+          return reply(res, 404, "Owner user not found");
+        }
+        if (owner.role === "superadmin") {
+          return reply(res, 400, "Superadmin cannot be assigned as tenant owner");
+        }
+        resolvedOwnerId = owner._id;
+      }
+    } else if (authRole === "superadmin") {
+      return reply(
+        res,
+        400,
+        "Superadmin must provide ownerEmail (or ownerId) for the tenant owner",
+      );
+    }
+
+    const tenant = await createTenant({
+      name: trimmedName,
+      ownerId: resolvedOwnerId,
+      status: (status as TenantStatus | undefined) ?? "active",
+      domain: domain?.trim() || undefined,
+    });
     return reply(res, 201, "Tenant created", { tenant });
    } catch (error) {
+    if (error instanceof Error && error.message.includes("duplicate key")) {
+      return reply(res, 409, "Tenant name or domain already exists");
+    }
     return reply(res, 500, errorMessage(error));
    }
 }

@@ -23,7 +23,7 @@ import { MaterialSymbol } from '../../theme'
 import { loginFormSchema, type LoginFormValues } from './loginFormSchema'
 
 export type LoginFormProps = {
-  onSuccess?: () => void
+  onSuccess?: (accessToken: string) => void
 }
 
 export function LoginForm({ onSuccess }: LoginFormProps) {
@@ -97,8 +97,8 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       password: data.password,
       rememberMe: Boolean(data.rememberMe),
     }))
-    if (login.fulfilled.match(result)) {
-      onSuccess?.()
+    if (login.fulfilled.match(result) && result.payload.accessToken) {
+      onSuccess?.(result.payload.accessToken)
     }
   }
 

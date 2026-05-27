@@ -8,19 +8,25 @@ import connectDB from '../config/db';
 async function seed() {
   await connectDB();
 
-  const existing = await User.findOne({ role: 'superadmin' });
-  if (existing) {
-    console.log('Superadmin already exists:', existing.email);
+  const email = 'superadmin@platform.com';
+  const password = await hashPassword('SuperAdmin@123');
+  let user = await User.findOne({ email });
+
+  if (user) {
+    user.role = 'superadmin';
+    user.tenant = undefined;
+    user.isActive = true;
+    if (!user.password) user.password = password;
+    await user.save();
+    console.log('Superadmin ensured (role restored if needed):', email);
     process.exit(0);
   }
 
-  const password = await hashPassword('SuperAdmin@123');
   const superadmin = await User.create({
     name: 'Super Admin',
-    email: 'superadmin@platform.com',
+    email,
     password,
     role: 'superadmin',
-    tenant: undefined,
     isActive: true,
   });
 

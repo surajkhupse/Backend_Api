@@ -8,6 +8,8 @@
     "start": "node dist/server.js",
     "dev": "nodemon --watch src --ext ts --exec \"tsx src/server.ts\"",
     "seed": "tsx src/scripts/seed-superadmin.ts",
+    "seed:fix-superadmin": "tsx src/scripts/fix-superadmin.ts",
+    "seed:demo": "tsx src/scripts/seed-demo-data.ts",
     "openapi": "tsx src/scripts/generate-openapi.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

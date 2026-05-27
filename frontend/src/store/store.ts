@@ -4,6 +4,7 @@ import auditReducer from './slices/auditSlice'
 import authReducer from './slices/authSlice'
 import forgotPasswordReducer from './slices/forgotPasswordSlice'
 import tenantReducer from './slices/tenantSlice'
+import usersReducer from './slices/usersSlice'
 import accountReducer from './slices/accountSlice'
 import eventReducer from './slices/eventSlice'
 
@@ -14,6 +15,7 @@ export const store = configureStore({
     audit: auditReducer,
     forgotPassword: forgotPasswordReducer,
     tenants: tenantReducer,
+    users: usersReducer,
     account: accountReducer,
     event: eventReducer,
   },

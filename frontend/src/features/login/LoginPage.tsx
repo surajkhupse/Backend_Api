@@ -1,3 +1,4 @@
+import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
@@ -6,6 +7,9 @@ import Typography from '@mui/material/Typography'
 import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { TopRightToast } from '../../components/TopRightToast'
+import { useAuthRole } from '../auth/hooks/useAuthRole'
+import { getDashboardHomeRoute } from '../auth/utils/dashboardRoutes'
+import { isSuperadminRole } from '../auth/utils/jwt'
 import { navigateAfterLogin } from '../../routes/authNavigation'
 import { ROUTES } from '../../routes/paths'
 import { useAppSelector } from '../../store/hooks'
@@ -16,14 +20,14 @@ export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const auth = useAppSelector((state) => state.auth.tokens)
+  const role = useAuthRole()
   const sessionExpired = searchParams.get('session') === 'expired'
   const [sessionToastOpen, setSessionToastOpen] = useState(sessionExpired)
 
-  useEffect(() => {
-    if (auth?.accessToken) {
-      navigate(ROUTES.HOME, { replace: true })
-    }
-  }, [auth?.accessToken, navigate])
+  const hasSession = Boolean(auth?.accessToken)
+  const homeRoute = hasSession
+    ? getDashboardHomeRoute(auth!.accessToken, role)
+    : ROUTES.HOME
 
   useEffect(() => {
     if (sessionExpired) {
@@ -71,7 +75,24 @@ export function LoginPage() {
             boxShadow: '0 8px 30px rgb(0 0 0 / 0.04)',
           }}
         >
-          <LoginForm onSuccess={() => navigateAfterLogin(navigate)} />
+          {hasSession && role ? (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="bodySm" component="div" sx={{ mb: 1.5 }}>
+                Already signed in as <strong>{role}</strong>
+                {isSuperadminRole(role) ? ' (platform admin)' : ' (tenant user)'}.
+                Sign in again below to switch accounts.
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => navigate(homeRoute, { replace: true })}
+              >
+                Continue to dashboard
+              </Button>
+            </Alert>
+          ) : null}
+
+          <LoginForm onSuccess={(accessToken) => navigateAfterLogin(navigate, accessToken)} />
         </Paper>
 
         <Typography variant="bodySm" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>

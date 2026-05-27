@@ -4,8 +4,12 @@ import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
 import { MaterialSymbol } from '../../../theme'
 import { DASHBOARD_ACCENT } from '../constants/dashboard'
-import { DASHBOARD_STATS, STAT_SPARKLINE_HEIGHTS } from '../data/dashboardMockData'
+import { TENANT_DASHBOARD_STATS, STAT_SPARKLINE_HEIGHTS } from '../data/dashboardMockData'
 import type { DashboardStat } from '../data/dashboardMockData'
+
+type DashboardStatCardsProps = {
+  stats?: DashboardStat[]
+}
 
 function StatCardFooter({ variant }: { variant: DashboardStat['variant'] }) {
   if (variant === 'events') {
@@ -111,7 +115,7 @@ function iconColor(variant: DashboardStat['variant']): string {
   }
 }
 
-export function DashboardStatCards() {
+export function DashboardStatCards({ stats = TENANT_DASHBOARD_STATS }: DashboardStatCardsProps) {
   return (
     <Box
       sx={{
@@ -120,7 +124,7 @@ export function DashboardStatCards() {
         gap: 3,
       }}
     >
-      {DASHBOARD_STATS.map((stat) => (
+      {stats.map((stat) => (
         <Paper
           key={stat.id}
           elevation={0}

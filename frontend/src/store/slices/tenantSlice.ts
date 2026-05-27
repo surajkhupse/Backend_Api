@@ -1,168 +1,144 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit'
-import { isAxiosError } from 'axios'
-import { getTenants } from '../../api/generated/tenants/tenants'
-import type {
-  ChangeTenantStatusBodyStatus,
-  CreateTenantBody,
-} from '../../api/generated/models'
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import {
+  changeTenantStatusApi,
+  createTenantApi,
+  deleteTenantApi,
+  listTenantsApi,
+  type CreateTenantBody,
+  type TenantRecord,
+  type TenantStatus,
+} from '../../services/api/tenantsApi'
+import { extractApiError } from '../../services/api/extractApiError'
 
-const tenantsApi = getTenants()
-
-export interface Tenant {
-  _id: string
-  name: string
-  slug: string
-  domain?: string
-  status: 'active' | 'inactive' | 'suspended'
-  owner: string
-  settings: Record<string, unknown>
-  createdAt: string
-  updatedAt: string
-}
+export type Tenant = TenantRecord
 
 export interface TenantState {
-  tenants: Tenant[]
-  currentTenant: Tenant | null
+  items: Tenant[]
+  currentItem: Tenant | null
   loading: boolean
   error: string | null
+  /** Row-level actions (status change / delete) */
+  actionTenantId: string | null
 }
 
 const initialState: TenantState = {
-  tenants: [],
-  currentTenant: null,
+  items: [],
+  currentItem: null,
   loading: false,
   error: null,
+  actionTenantId: null,
 }
 
-function extractError(err: unknown, fallback: string): string {
-  if (isAxiosError<{ message?: string }>(err)) {
-    const msg = err.response?.data?.message
-    if (typeof msg === 'string') return msg
-    if (err.response?.status === 403) return 'You do not have permission for this action.'
-    if (err.code === 'ERR_NETWORK') return 'Cannot reach the API.'
-  }
-  if (err instanceof Error) return err.message
-  return fallback
-}
-
-export const fetchTenants = createAsyncThunk<Tenant[], void, { rejectValue: string }>(
-  'tenants/fetchAll',
-  async (_, { rejectWithValue }) => {
+export const createTenant = createAsyncThunk<Tenant, CreateTenantBody, { rejectValue: string }>(
+  'tenant/createTenant',
+  async (body, { rejectWithValue }) => {
     try {
-      const data = (await tenantsApi.listTenants()) as unknown as { tenants: Tenant[] }
-      return data.tenants
+      return await createTenantApi(body)
     } catch (err) {
-      return rejectWithValue(extractError(err, 'Failed to load tenants'))
+      return rejectWithValue(extractApiError(err, 'Failed to create tenant'))
     }
   },
 )
 
-export const createTenant = createAsyncThunk<Tenant, CreateTenantBody, { rejectValue: string }>(
-  'tenants/create',
-  async (body, { rejectWithValue }) => {
+export const listTenants = createAsyncThunk<Tenant[], void, { rejectValue: string }>(
+  'tenant/listTenants',
+  async (_, { rejectWithValue }) => {
     try {
-      const data = (await tenantsApi.createTenant(body)) as unknown as { tenant: Tenant }
-      return data.tenant
+      return await listTenantsApi()
     } catch (err) {
-      return rejectWithValue(extractError(err, 'Failed to create tenant'))
+      return rejectWithValue(extractApiError(err, 'Failed to load tenants'))
     }
   },
 )
 
 export const changeTenantStatus = createAsyncThunk<
   Tenant,
-  { id: string; status: ChangeTenantStatusBodyStatus },
+  { id: string; status: TenantStatus },
   { rejectValue: string }
->('tenants/changeStatus', async ({ id, status }, { rejectWithValue }) => {
-  try {
-    const data = (await tenantsApi.changeTenantStatus(id, { status })) as unknown as {
-      tenant: Tenant
-    }
-    return data.tenant
-  } catch (err) {
-    return rejectWithValue(extractError(err, 'Failed to update tenant status'))
-  }
-})
-
-export const deleteTenant = createAsyncThunk<string, { id: string }, { rejectValue: string }>(
-  'tenants/delete',
-  async ({ id }, { rejectWithValue }) => {
+>(
+  'tenant/changeTenantStatus',
+  async ({ id, status }, { rejectWithValue }) => {
     try {
-      await tenantsApi.deleteTenant(id)
-      return id
+      return await changeTenantStatusApi(id, status)
     } catch (err) {
-      return rejectWithValue(extractError(err, 'Failed to delete tenant'))
+      return rejectWithValue(extractApiError(err, 'Failed to update tenant status'))
     }
   },
 )
 
-export const fetchTenantById = createAsyncThunk<Tenant, { id: string }, { rejectValue: string }>(
-  'tenants/fetchById',
+export const deleteTenant = createAsyncThunk<string, { id: string }, { rejectValue: string }>(
+  'tenant/deleteTenant',
   async ({ id }, { rejectWithValue }) => {
     try {
-      const data = (await tenantsApi.getTenantById(id)) as unknown as { tenant: Tenant }
-      return data.tenant
+      await deleteTenantApi(id)
+      return id
     } catch (err) {
-      return rejectWithValue(extractError(err, 'Tenant not found'))
+      return rejectWithValue(extractApiError(err, 'Failed to delete tenant'))
     }
   },
 )
 
 export const tenantSlice = createSlice({
-  name: 'tenants',
+  name: 'tenant',
   initialState,
   reducers: {
     clearTenantError(state) {
       state.error = null
     },
-    setCurrentTenant(state, action: PayloadAction<Tenant | null>) {
-      state.currentTenant = action.payload
+    setCurrentTenant(state, action: { payload: Tenant | null }) {
+      state.currentItem = action.payload
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTenants.pending, (state) => {
+      .addCase(createTenant.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      .addCase(fetchTenants.fulfilled, (state, action) => {
+      .addCase(createTenant.fulfilled, (state, action) => {
         state.loading = false
-        state.tenants = action.payload
+        state.items = [action.payload, ...state.items]
       })
-      .addCase(fetchTenants.rejected, (state, action) => {
+      .addCase(createTenant.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload ?? 'Failed to create tenant'
+      })
+      .addCase(listTenants.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(listTenants.fulfilled, (state, action) => {
+        state.loading = false
+        state.items = action.payload
+      })
+      .addCase(listTenants.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload ?? 'Failed to load tenants'
       })
-      .addCase(createTenant.fulfilled, (state, action) => {
-        state.tenants.unshift(action.payload)
-      })
-      .addCase(createTenant.rejected, (state, action) => {
-        state.error = action.payload ?? 'Failed to create tenant'
-      })
-      .addCase(changeTenantStatus.fulfilled, (state, action) => {
-        const idx = state.tenants.findIndex((t) => t._id === action.payload._id)
-        if (idx !== -1) state.tenants[idx] = action.payload
-      })
-      .addCase(changeTenantStatus.rejected, (state, action) => {
-        state.error = action.payload ?? 'Failed to update status'
-      })
-      .addCase(deleteTenant.fulfilled, (state, action) => {
-        state.tenants = state.tenants.filter((t) => t._id !== action.payload)
-      })
-      .addCase(deleteTenant.rejected, (state, action) => {
-        state.error = action.payload ?? 'Failed to delete tenant'
-      })
-      .addCase(fetchTenantById.pending, (state) => {
-        state.loading = true
+      .addCase(changeTenantStatus.pending, (state, action) => {
+        state.actionTenantId = action.meta.arg.id
         state.error = null
       })
-      .addCase(fetchTenantById.fulfilled, (state, action) => {
-        state.loading = false
-        state.currentTenant = action.payload
+      .addCase(changeTenantStatus.fulfilled, (state, action) => {
+        state.actionTenantId = null
+        const idx = state.items.findIndex((t) => t._id === action.payload._id)
+        if (idx >= 0) state.items[idx] = action.payload
       })
-      .addCase(fetchTenantById.rejected, (state, action) => {
-        state.loading = false
-        state.error = action.payload ?? 'Tenant not found'
+      .addCase(changeTenantStatus.rejected, (state, action) => {
+        state.actionTenantId = null
+        state.error = action.payload ?? 'Failed to update tenant status'
+      })
+      .addCase(deleteTenant.pending, (state, action) => {
+        state.actionTenantId = action.meta.arg.id
+        state.error = null
+      })
+      .addCase(deleteTenant.fulfilled, (state, action) => {
+        state.actionTenantId = null
+        state.items = state.items.filter((item) => item._id !== action.payload)
+      })
+      .addCase(deleteTenant.rejected, (state, action) => {
+        state.actionTenantId = null
+        state.error = action.payload ?? 'Failed to delete tenant'
       })
   },
 })

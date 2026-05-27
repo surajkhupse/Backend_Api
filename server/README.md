@@ -53,6 +53,8 @@ npm run dev
 | `npm run build` | Compile TypeScript to `dist/` |
 | `npm start` | Run compiled `dist/server.js` |
 | `npm run openapi` | Write `openapi.generated.json` (gitignored) |
+| `npm run seed` | Create superadmin (`superadmin@platform.com`) |
+| `npm run seed:demo` | Create 3 demo tenants + users (see [root README](../README.md#demo-seed-data)) |
 
 ## Project structure
 
@@ -125,6 +127,24 @@ All routes require Bearer auth.
 | POST | `/` | Create event |
 | DELETE | `/:id` | Delete event by id |
 
+### Tenants (`/api/tenants`)
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| POST | `/` | `tenants:create` | Create tenant (`name`, `ownerEmail`, optional `domain`, `status`) |
+| GET | `/` | `tenants:read_any` | List all tenants (superadmin) |
+| GET | `/:id` | `tenants:read_any` | Get tenant by id |
+| PUT | `/:id/status` | `tenants:suspend` | Change status (`active` / `inactive` / `suspended`) |
+| DELETE | `/:id` | `tenants:delete` | Delete tenant |
+
+### Users (`/api/users`)
+
+| Method | Path | Permission | Description |
+|--------|------|------------|-------------|
+| GET | `/` | `users:read_any` | List all users (superadmin) |
+
+Full platform flow (login, roles, UI pages): [../README.md](../README.md#application-flow).
+
 ## OpenAPI
 
 - **Live spec:** `GET /openapi.json` (aliases: `/api/openapi`, `/api-spec.json`, `/v1/openapi.json`).
@@ -165,6 +185,7 @@ The frontend uses this file for [Orval](../frontend/README.md#api-client-orval) 
 1. Start this API on port `5000` (or set `PORT` and match `VITE_API_URL` in the frontend).
 2. From `server`: `npm run openapi`.
 3. From `frontend`: `npm run generate:api`.
+4. From `frontend`: `npm run generate:slice` (refresh Redux slices from generated API modules).
 
 See [frontend/README.md](../frontend/README.md) for the React app setup.
 

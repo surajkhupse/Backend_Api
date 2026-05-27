@@ -24,6 +24,21 @@ const router = express.Router();
  *             properties:
  *               name:
  *                 type: string
+ *                 description: Display name (slug is generated automatically)
+ *               domain:
+ *                 type: string
+ *                 description: Optional custom domain
+ *               status:
+ *                 type: string
+ *                 enum: [active, inactive, suspended]
+ *                 default: active
+ *               ownerEmail:
+ *                 type: string
+ *                 format: email
+ *                 description: Tenant owner user email (required when superadmin creates)
+ *               ownerId:
+ *                 type: string
+ *                 description: Tenant owner user id (alternative to ownerEmail)
  *     responses:
  *       201:
  *         description: Tenant created

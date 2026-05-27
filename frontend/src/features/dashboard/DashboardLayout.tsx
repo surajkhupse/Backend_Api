@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box'
 import { Outlet, useLocation } from 'react-router-dom'
+import { useIsSuperadmin } from '../auth/hooks/useAuthRole'
 import { ROUTES } from '../../routes/paths'
 import {
   AuthSuccessToast,
@@ -11,7 +12,10 @@ import {
 
 export function DashboardLayout() {
   const { pathname } = useLocation()
-  const showFab = pathname === ROUTES.HOME
+  const isSuperadmin = useIsSuperadmin()
+  const showFab = isSuperadmin
+    ? pathname === ROUTES.ADMIN_DASHBOARD
+    : pathname === ROUTES.TENANT_DASHBOARD
 
   return (
     <>

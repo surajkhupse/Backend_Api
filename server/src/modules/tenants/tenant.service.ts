@@ -11,19 +11,33 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function createTenant(name : string, ownerId : Types.ObjectId | string, status : TenantStatus = "active", settings : Record<string, unknown> = {} ){
-    const slug = slugify(name);
-    const tenant = await Tenant.create({    
-        name,
-        slug,
-        owner: ownerId,
-        status,
-        settings,
-    });
+export type CreateTenantInput = {
+  name: string;
+  ownerId: Types.ObjectId | string;
+  status?: TenantStatus;
+  domain?: string;
+  settings?: Record<string, unknown>;
+};
 
-    await User.findByIdAndUpdate(ownerId, { tenant: tenant._id , role: "tenant_admin"}, { new: true });
+export async function createTenant(input: CreateTenantInput) {
+  const { name, ownerId, status = "active", domain, settings = {} } = input;
+  const slug = slugify(name);
+  const tenant = await Tenant.create({
+    name,
+    slug,
+    ...(domain ? { domain } : {}),
+    owner: ownerId,
+    status,
+    settings,
+  });
 
-    return tenant;
+  await User.findByIdAndUpdate(
+    ownerId,
+    { tenant: tenant._id, role: "tenant_admin" },
+    { new: true },
+  );
+
+  return tenant;
 }
 
 export async function listTenants() {

@@ -18,7 +18,8 @@ export type UpcomingEvent = {
   imageUrl: string
 }
 
-export const DASHBOARD_STATS: DashboardStat[] = [
+/** Tenant-scoped dashboard metrics (events, sessions, registrations). */
+export const TENANT_DASHBOARD_STATS: DashboardStat[] = [
   {
     id: 'events',
     label: 'Total Events',
@@ -49,6 +50,45 @@ export const DASHBOARD_STATS: DashboardStat[] = [
     value: '$1.2M',
     icon: 'payments',
     trend: { label: '+8%', icon: 'trending_up', color: 'secondary' },
+    variant: 'revenue',
+  },
+]
+
+/** @deprecated Use TENANT_DASHBOARD_STATS */
+export const DASHBOARD_STATS = TENANT_DASHBOARD_STATS
+
+/** Platform / superadmin dashboard metrics. */
+export const ADMIN_DASHBOARD_STATS: DashboardStat[] = [
+  {
+    id: 'tenants',
+    label: 'Total Tenants',
+    value: '24',
+    icon: 'domain',
+    trend: { label: '+3', icon: 'trending_up', color: 'secondary' },
+    variant: 'events',
+  },
+  {
+    id: 'active',
+    label: 'Active Tenants',
+    value: '21',
+    icon: 'verified',
+    trend: { label: 'Live', color: 'tertiary' },
+    variant: 'sessions',
+  },
+  {
+    id: 'users',
+    label: 'Platform Users',
+    value: '1,842',
+    icon: 'group',
+    trend: { label: '+128', icon: 'trending_up', color: 'secondary' },
+    variant: 'registrations',
+  },
+  {
+    id: 'suspended',
+    label: 'Suspended Tenants',
+    value: '3',
+    icon: 'block',
+    trend: { label: 'Review', color: 'tertiary' },
     variant: 'revenue',
   },
 ]

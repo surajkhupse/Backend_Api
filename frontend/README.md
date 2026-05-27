@@ -84,8 +84,10 @@ frontend/
 │   │   ├── auth/              # API wrappers, token storage, Google logo
 │   │   ├── login/
 │   │   ├── password/          # Register, forgot password
-│   │   ├── audit/               # Audit logs page (GET /api/auth/audit-logs)
-│   │   └── dashboard/         # Dashboard UI (some data still mocked)
+│   │   ├── audit/             # Audit logs page (GET /api/auth/audit-logs)
+│   │   ├── tenants/           # Superadmin tenant list + create
+│   │   ├── users/             # Superadmin user list
+│   │   └── dashboard/         # Admin + tenant dashboards
 │   ├── services/api/
 │   │   ├── client.ts          # Axios instance + Bearer interceptor
 │   │   └── orvalMutator.ts    # Orval → shared axios
@@ -108,10 +110,16 @@ frontend/
 | `/login` | Public | Login |
 | `/sign-up` | Public | Register |
 | `/forgot-password` | Public | Forgot password |
-| `/` | Protected | Dashboard |
-| `/audit-logs` | Protected | Audit logs (sign-in activity from API) |
+| `/` | Protected | Redirects by role (superadmin → admin dashboard) |
+| `/admin-dashboard` | Superadmin | Platform overview |
+| `/tenants` | Superadmin | All tenants + create |
+| `/users` | Superadmin | All users |
+| `/tenant-dashboard` | Tenant users | Tenant dashboard |
+| `/audit-logs` | Protected | Audit logs |
 
-Protection: `ProtectedRoute` checks Redux `auth.accessToken`; unauthenticated users redirect to `/login`.
+Protection: `ProtectedRoute` checks Redux `auth.accessToken`; `RoleDashboardRoute` splits superadmin vs tenant routes.
+
+**Full flow (diagrams, API, seed data):** [../README.md](../README.md#application-flow)
 
 ## API client (Orval)
 
@@ -148,7 +156,9 @@ Generated files are in `.gitignore`; clone fresh → run both commands before `n
 | `auth` | `loginRequest`, `registerRequest`, `logoutRequest`, error helpers, storage |
 | `login` | `LoginPage`, `LoginForm`, Zod schema |
 | `password` | `RegisterPage`, `ForgotPasswordPage`, forms, password strength |
-| `dashboard` | Layout, stat cards, tables (mock data in `data/dashboardMockData.ts`) |
+| `dashboard` | Layout, admin + tenant dashboards |
+| `tenants` | `TenantsPage`, create dialog, `tenantsApi` |
+| `users` | `UsersPage`, `usersApi` |
 
 Import from feature barrels (`features/auth`, `features/login`, etc.) rather than deep paths when possible.
 

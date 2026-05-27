@@ -7,17 +7,26 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useIsSuperadmin } from '../../../features/auth/hooks/useAuthRole'
 import { ROUTES } from '../../../routes/paths'
-import { useAppDispatch, useAppSelector } from '../../../store/hooks'
+import { useAppDispatch } from '../../../store/hooks'
 import { logout } from '../../../store/slices/authSlice'
 import { MaterialSymbol } from '../../../theme'
 import { layout } from '../../../theme/tokens/spacing'
 import { DASHBOARD_BRAND } from '../constants/dashboard'
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', icon: 'dashboard', path: ROUTES.HOME },
+const TENANT_NAV_ITEMS = [
+  { label: 'Dashboard', icon: 'dashboard', path: ROUTES.TENANT_DASHBOARD },
   { label: 'Events', icon: 'calendar_today', path: null },
   { label: 'Sessions', icon: 'video_library', path: null },
+  { label: 'Audit Logs', icon: 'receipt_long', path: ROUTES.AUDIT_LOGS },
+  { label: 'Settings', icon: 'settings', path: null },
+] as const
+
+const ADMIN_NAV_ITEMS = [
+  { label: 'Dashboard', icon: 'admin_panel_settings', path: ROUTES.ADMIN_DASHBOARD },
+  { label: 'Tenants', icon: 'domain', path: ROUTES.TENANTS },
+  { label: 'Users', icon: 'group', path: ROUTES.USERS },
   { label: 'Audit Logs', icon: 'receipt_long', path: ROUTES.AUDIT_LOGS },
   { label: 'Settings', icon: 'settings', path: null },
 ] as const
@@ -31,6 +40,8 @@ export function DashboardSidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useAppDispatch()
+  const isSuperadmin = useIsSuperadmin()
+  const navItems = isSuperadmin ? ADMIN_NAV_ITEMS : TENANT_NAV_ITEMS
   async function handleLogout() {
     await dispatch(logout())
     navigate(ROUTES.LOGIN, { replace: true })
@@ -63,7 +74,7 @@ export function DashboardSidebar() {
       </Box>
 
       <List sx={{ flex: 1, px: 1.5, py: 0 }}>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = item.path != null && location.pathname === item.path
           return (
             <ListItemButton

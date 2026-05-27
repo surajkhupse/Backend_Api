@@ -1,5 +1,8 @@
 import type { NavigateFunction } from 'react-router-dom'
-import { ROUTES } from './paths'
+import { AUTH_STORAGE_KEYS } from '../constants'
+import { getDashboardHomeRoute } from '../features/auth/utils/dashboardRoutes'
+import { readStoredToken } from '../features/auth/utils/authStorage'
+import { syncRoleFromAccessToken } from '../features/auth/utils/jwt'
 
 export type AuthLocationState = {
   loginSuccess?: boolean
@@ -33,18 +36,31 @@ export function consumeAuthFlash(): AuthFlashKind | null {
   }
 }
 
-export function navigateAfterLogin(navigate: NavigateFunction): void {
-  setAuthFlash('login')
-  navigate(ROUTES.HOME, {
+function navigateAfterAuth(
+  navigate: NavigateFunction,
+  flash: AuthFlashKind,
+  stateKey: 'loginSuccess' | 'registerSuccess',
+  accessToken?: string | null,
+): void {
+  setAuthFlash(flash)
+  const token = accessToken ?? readStoredToken(AUTH_STORAGE_KEYS.accessToken)
+  const role = syncRoleFromAccessToken(token)
+  navigate(getDashboardHomeRoute(token, role), {
     replace: true,
-    state: { loginSuccess: true } satisfies AuthLocationState,
+    state: { [stateKey]: true } satisfies AuthLocationState,
   })
 }
 
-export function navigateAfterRegister(navigate: NavigateFunction): void {
-  setAuthFlash('register')
-  navigate(ROUTES.HOME, {
-    replace: true,
-    state: { registerSuccess: true } satisfies AuthLocationState,
-  })
+export function navigateAfterLogin(
+  navigate: NavigateFunction,
+  accessToken?: string | null,
+): void {
+  navigateAfterAuth(navigate, 'login', 'loginSuccess', accessToken)
+}
+
+export function navigateAfterRegister(
+  navigate: NavigateFunction,
+  accessToken?: string | null,
+): void {
+  navigateAfterAuth(navigate, 'register', 'registerSuccess', accessToken)
 }

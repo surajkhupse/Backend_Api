@@ -14,3 +14,11 @@ export async function findUserByEmail(emailRaw: unknown) {
     $expr: { $eq: [{ $toLower: '$email' }, normalized] },
   });
 }
+
+export async function listUsers() {
+  return User.find()
+    .select('-password -passwordResetToken -passwordResetExpires')
+    .populate('tenant', 'name slug')
+    .sort({ createdAt: -1 })
+    .lean();
+}

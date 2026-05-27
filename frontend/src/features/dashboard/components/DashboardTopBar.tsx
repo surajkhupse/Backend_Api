@@ -5,20 +5,26 @@ import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import Chip from '@mui/material/Chip'
 import { useLocation } from 'react-router-dom'
+import { useAuthRole } from '../../auth/hooks/useAuthRole'
 import { ROUTES } from '../../../routes/paths'
 import { MaterialSymbol } from '../../../theme'
 import { layout } from '../../../theme/tokens/spacing'
 import { USER_AVATAR_URL } from '../constants/dashboard'
 
 const CRUMBS: Record<string, { parent: string; current: string }> = {
-  [ROUTES.HOME]: { parent: 'Home', current: 'Dashboard' },
+  [ROUTES.TENANT_DASHBOARD]: { parent: 'Home', current: 'Dashboard' },
+  [ROUTES.ADMIN_DASHBOARD]: { parent: 'Administration', current: 'Dashboard' },
+  [ROUTES.TENANTS]: { parent: 'Administration', current: 'Tenants' },
+  [ROUTES.USERS]: { parent: 'Administration', current: 'Users' },
   [ROUTES.AUDIT_LOGS]: { parent: 'Infrastructure', current: 'Audit Logs' },
 }
 
 export function DashboardTopBar() {
   const { pathname } = useLocation()
-  const crumb = CRUMBS[pathname] ?? CRUMBS[ROUTES.HOME]
+  const role = useAuthRole()
+  const crumb = CRUMBS[pathname] ?? CRUMBS[ROUTES.TENANT_DASHBOARD]
   const showTopSearch = pathname !== ROUTES.AUDIT_LOGS
 
   return (
@@ -80,6 +86,15 @@ export function DashboardTopBar() {
         ) : null}
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {role ? (
+            <Chip
+              size="small"
+              label={role}
+              color={role === 'superadmin' ? 'warning' : 'default'}
+              variant="outlined"
+              sx={{ display: { xs: 'none', sm: 'flex' } }}
+            />
+          ) : null}
           <IconButton size="small" aria-label="Help">
             <MaterialSymbol name="help" sx={{ color: 'text.secondary' }} />
           </IconButton>
