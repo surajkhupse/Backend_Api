@@ -7,6 +7,7 @@ import { UsersPage } from '../features/users'
 import { LoginPage } from '../features/login'
 import { ForgotPasswordPage } from '../features/forgot-password'
 import { RegisterPage } from '../features/password'
+import { ProfilePage } from '../features/settings'
 import { NotFoundPage } from '../pages/NotFoundPage'
 import { HomeRedirect, RoleDashboardRoute } from './RoleDashboardRoute'
 import { ProtectedRoute } from './ProtectedRoute'
@@ -30,6 +31,7 @@ export function AppRoutes() {
             <Route path={ROUTES.USERS} element={<UsersPage />} />
           </Route>
           <Route path={ROUTES.AUDIT_LOGS} element={<AuditLogsPage />} />
+          <Route path={ROUTES.SETTINGS_PROFILE} element={<ProfilePage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />

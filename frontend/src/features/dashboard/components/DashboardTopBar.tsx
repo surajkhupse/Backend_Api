@@ -19,18 +19,20 @@ const CRUMBS: Record<string, { parent: string; current: string }> = {
   [ROUTES.TENANTS]: { parent: 'Administration', current: 'Tenants' },
   [ROUTES.USERS]: { parent: 'Administration', current: 'Users' },
   [ROUTES.AUDIT_LOGS]: { parent: 'Infrastructure', current: 'Audit Logs' },
+  [ROUTES.SETTINGS_PROFILE]: { parent: 'Settings', current: 'Profile' },
 }
 
 export function DashboardTopBar() {
   const { pathname } = useLocation()
   const role = useAuthRole()
   const crumb = CRUMBS[pathname] ?? CRUMBS[ROUTES.TENANT_DASHBOARD]
-  const showTopSearch = pathname !== ROUTES.AUDIT_LOGS
+  const showTopSearch =
+    pathname !== ROUTES.AUDIT_LOGS && pathname !== ROUTES.SETTINGS_PROFILE
 
   return (
     <Box
       component="header"
-      sx={{
+      sx={(theme) => ({
         position: 'sticky',
         top: 0,
         zIndex: 50,
@@ -42,12 +44,9 @@ export function DashboardTopBar() {
         gap: 2,
         borderBottom: 1,
         borderColor: 'border.subtle',
-        bgcolor: (theme) =>
-          theme.palette.mode === 'light'
-            ? 'rgba(248, 249, 255, 0.7)'
-            : 'rgba(17, 24, 39, 0.85)',
-        backdropFilter: 'blur(12px)',
-      }}
+        ...theme.mixins.glassSurface(theme, { blur: 12, bgOpacity: 0.8, borderOpacity: 0 }),
+        boxShadow: theme.vars.customShadows.glass,
+      })}
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
         <Typography variant="labelMd" color="text.secondary" noWrap>

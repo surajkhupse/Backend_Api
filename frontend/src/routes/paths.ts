@@ -5,6 +5,7 @@ export const ROUTES = {
   TENANTS: '/tenants',
   USERS: '/users',
   AUDIT_LOGS: '/audit-logs',
+  SETTINGS_PROFILE: '/settings/profile',
   LOGIN: '/login',
   SIGN_UP: '/sign-up',
   FORGOT_PASSWORD: '/forgot-password',

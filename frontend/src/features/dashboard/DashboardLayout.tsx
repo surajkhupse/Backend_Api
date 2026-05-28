@@ -44,7 +44,7 @@ export function DashboardLayout() {
         >
           <DashboardTopBar />
           <Outlet />
-          <DashboardFooter />
+          {pathname !== ROUTES.SETTINGS_PROFILE ? <DashboardFooter /> : null}
         </Box>
 
         {showFab ? <DashboardFab /> : null}

@@ -98,3 +98,49 @@ export function clearStoredTokens(): void {
     /* ignore */
   }
 }
+
+const IMPERSONATION_BACKUP_KEY = 'impersonationBackup'
+
+export type ImpersonationBackup = {
+  accessToken: string
+  refreshToken: string
+  rememberMe: boolean
+}
+
+export function persistImpersonationBackup(backup: ImpersonationBackup): void {
+  try {
+    sessionStorage.setItem(IMPERSONATION_BACKUP_KEY, JSON.stringify(backup))
+  } catch {
+    /* ignore */
+  }
+}
+
+export function readImpersonationBackup(): ImpersonationBackup | null {
+  try {
+    const raw = sessionStorage.getItem(IMPERSONATION_BACKUP_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Partial<ImpersonationBackup>
+    if (
+      typeof parsed.accessToken !== 'string' ||
+      typeof parsed.refreshToken !== 'string' ||
+      typeof parsed.rememberMe !== 'boolean'
+    ) {
+      return null
+    }
+    return {
+      accessToken: parsed.accessToken,
+      refreshToken: parsed.refreshToken,
+      rememberMe: parsed.rememberMe,
+    }
+  } catch {
+    return null
+  }
+}
+
+export function clearImpersonationBackup(): void {
+  try {
+    sessionStorage.removeItem(IMPERSONATION_BACKUP_KEY)
+  } catch {
+    /* ignore */
+  }
+}

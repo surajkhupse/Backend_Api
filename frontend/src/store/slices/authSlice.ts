@@ -9,8 +9,12 @@ import type {
   RegisterInput,
 } from '../../api/generated/models'
 import {
+  clearImpersonationBackup,
   clearStoredTokens,
+  getRememberMe,
+  persistImpersonationBackup,
   persistTokens,
+  readImpersonationBackup,
   readPersistedAuth,
   setRememberMe,
 } from '../../features/auth/utils/authStorage'
@@ -34,6 +38,7 @@ export type AccountLockedBody = AccountLockedResponse & {
 
 export interface AuthState {
   tokens: AuthTokens | null
+  impersonationSource: (AuthTokens & { rememberMe: boolean }) | null
   /** From JWT at login / app load — drives sidebar and redirects */
   role: UserRole | null
   loading: boolean
@@ -158,9 +163,17 @@ if (persisted) {
 const persistedTokens: AuthTokens | null = persisted
   ? { accessToken: persisted.accessToken, refreshToken: persisted.refreshToken }
   : null
+const impersonationBackup = readImpersonationBackup()
 
 const initialState: AuthState = {
   tokens: persistedTokens,
+  impersonationSource: impersonationBackup
+    ? {
+      accessToken: impersonationBackup.accessToken,
+      refreshToken: impersonationBackup.refreshToken,
+      rememberMe: impersonationBackup.rememberMe,
+    }
+    : null,
   role: syncRoleFromAccessToken(persistedTokens?.accessToken ?? null),
   loading: false,
   error: null,
@@ -173,13 +186,42 @@ export const authSlice = createSlice({
   reducers: {
     setTokens: (state, action: PayloadAction<SetTokensPayload>) => {
       const { accessToken, refreshToken, rememberMe = false } = action.payload
+      clearImpersonationBackup()
       persistTokens(accessToken, refreshToken, rememberMe)
+      state.tokens = { accessToken, refreshToken }
+      state.impersonationSource = null
+      state.role = syncRoleFromAccessToken(accessToken)
+    },
+    beginImpersonation: (state, action: PayloadAction<AuthTokens>) => {
+      if (state.tokens && !state.impersonationSource) {
+        const source = {
+          accessToken: state.tokens.accessToken,
+          refreshToken: state.tokens.refreshToken,
+          rememberMe: getRememberMe(),
+        }
+        state.impersonationSource = source
+        persistImpersonationBackup(source)
+      }
+
+      const { accessToken, refreshToken } = action.payload
+      persistTokens(accessToken, refreshToken, false)
       state.tokens = { accessToken, refreshToken }
       state.role = syncRoleFromAccessToken(accessToken)
     },
+    restoreImpersonatorSession: (state) => {
+      if (!state.impersonationSource) return
+      const { accessToken, refreshToken, rememberMe } = state.impersonationSource
+      persistTokens(accessToken, refreshToken, rememberMe)
+      clearImpersonationBackup()
+      state.tokens = { accessToken, refreshToken }
+      state.impersonationSource = null
+      state.role = syncRoleFromAccessToken(accessToken)
+    },
     clearTokens: (state) => {
+      clearImpersonationBackup()
       clearStoredTokens()
       state.tokens = null
+      state.impersonationSource = null
       state.role = null
     },
     clearAuthError: (state) => {
@@ -196,10 +238,12 @@ export const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.loading = false
+        clearImpersonationBackup()
         state.tokens = {
           accessToken: action.payload.accessToken,
           refreshToken: action.payload.refreshToken,
         }
+        state.impersonationSource = null
         state.role = syncRoleFromAccessToken(action.payload.accessToken)
       })
       .addCase(login.rejected, (state, action) => {
@@ -221,10 +265,12 @@ export const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false
+        clearImpersonationBackup()
         state.tokens = {
           accessToken: action.payload.accessToken,
           refreshToken: action.payload.refreshToken,
         }
+        state.impersonationSource = null
         state.role = syncRoleFromAccessToken(action.payload.accessToken)
       })
       .addCase(registerUser.rejected, (state, action) => {
@@ -232,17 +278,21 @@ export const authSlice = createSlice({
         state.error = action.payload ?? 'Registration failed'
       })
       .addCase(logout.fulfilled, (state) => {
+        clearImpersonationBackup()
         state.tokens = null
+        state.impersonationSource = null
         state.role = null
         state.loading = false
       })
       .addCase(logout.rejected, (state) => {
+        clearImpersonationBackup()
         state.tokens = null
+        state.impersonationSource = null
         state.role = null
         state.loading = false
       })
   },
 })
 
-export const { setTokens, clearTokens, clearAuthError } = authSlice.actions
+export const { setTokens, beginImpersonation, restoreImpersonatorSession, clearTokens, clearAuthError } = authSlice.actions
 export default authSlice.reducer

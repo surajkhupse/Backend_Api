@@ -16,6 +16,12 @@ export interface IUser extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   role: UserRole;
+  jobTitle?: string;
+  bio?: string;
+  avatar?: string;
+  theme?: string;
+  publicProfile?: boolean;
+  usageData?: boolean;
 }
 
 const userSchema = new Schema<IUser>(
@@ -36,6 +42,12 @@ const userSchema = new Schema<IUser>(
       default: "member",
       required: true,
     },
+    jobTitle: { type: String, required: false, default: '' },
+    bio: { type: String, required: false, default: '' },
+    avatar: { type: String, required: false },
+    theme: { type: String, enum: ['light', 'dark'], default: 'light' },
+    publicProfile: { type: Boolean, default: true },
+    usageData: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

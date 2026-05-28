@@ -7,6 +7,7 @@ import tenantReducer from './slices/tenantSlice'
 import usersReducer from './slices/usersSlice'
 import accountReducer from './slices/accountSlice'
 import eventReducer from './slices/eventSlice'
+import profileReducer from './slices/profileSlice'
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     users: usersReducer,
     account: accountReducer,
     event: eventReducer,
+    profile: profileReducer,
   },
 })
 

@@ -8,6 +8,8 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { clearTenantError, listTenants } from '../../store/slices/tenantSlice'
 import { clearUsersError, listUsers } from '../../store/slices/usersSlice'
 import { layout } from '../../theme/tokens/spacing'
+import { AdminDummyUsersTable } from './components/AdminDummyUsersTable'
+import { AdminGrowthChart } from './components/AdminGrowthChart'
 import { AdminQuickLinks } from './components/AdminQuickLinks'
 
 export function AdminDashboardPage() {
@@ -60,7 +62,13 @@ export function AdminDashboardPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <AdminQuickLinks tenantCount={tenants.items.length} userCount={users.items.length} />
+        <>
+          <Box sx={{ width: 1, maxWidth: 820 }}>
+            <AdminGrowthChart tenants={tenants.items} users={users.items} />
+          </Box>
+          <AdminQuickLinks tenantCount={tenants.items.length} userCount={users.items.length} />
+          <AdminDummyUsersTable />
+        </>
       )}
     </Box>
   )

@@ -113,6 +113,8 @@ export function AuditLogsPage() {
       )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <AuditLogsStatCards entries={logs} />
+
         <AuditLogsFilters resultCount={logs.length} onClear={handleClearFilters} />
 
         {loading ? (
@@ -122,15 +124,12 @@ export function AuditLogsPage() {
         ) : logs.length === 0 ? (
           <AuditLogsEmptyState filtered={hasFilters} />
         ) : (
-          <>
-            <AuditLogsTable
-              entries={pagedLogs}
-              totalCount={logs.length}
-              page={page}
-              onPageChange={setPage}
-            />
-            <AuditLogsStatCards entries={logs} />
-          </>
+          <AuditLogsTable
+            entries={pagedLogs}
+            totalCount={logs.length}
+            page={page}
+            onPageChange={setPage}
+          />
         )}
       </Box>
     </Box>

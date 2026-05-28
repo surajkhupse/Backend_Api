@@ -9,8 +9,8 @@ import Typography from '@mui/material/Typography'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useIsSuperadmin } from '../../../features/auth/hooks/useAuthRole'
 import { ROUTES } from '../../../routes/paths'
-import { useAppDispatch } from '../../../store/hooks'
-import { logout } from '../../../store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '../../../store/hooks'
+import { logout, restoreImpersonatorSession } from '../../../store/slices/authSlice'
 import { MaterialSymbol } from '../../../theme'
 import { layout } from '../../../theme/tokens/spacing'
 import { DASHBOARD_BRAND } from '../constants/dashboard'
@@ -20,7 +20,7 @@ const TENANT_NAV_ITEMS = [
   { label: 'Events', icon: 'calendar_today', path: null },
   { label: 'Sessions', icon: 'video_library', path: null },
   { label: 'Audit Logs', icon: 'receipt_long', path: ROUTES.AUDIT_LOGS },
-  { label: 'Settings', icon: 'settings', path: null },
+  { label: 'Settings', icon: 'settings', path: ROUTES.SETTINGS_PROFILE },
 ] as const
 
 const ADMIN_NAV_ITEMS = [
@@ -28,11 +28,11 @@ const ADMIN_NAV_ITEMS = [
   { label: 'Tenants', icon: 'domain', path: ROUTES.TENANTS },
   { label: 'Users', icon: 'group', path: ROUTES.USERS },
   { label: 'Audit Logs', icon: 'receipt_long', path: ROUTES.AUDIT_LOGS },
-  { label: 'Settings', icon: 'settings', path: null },
+  { label: 'Settings', icon: 'settings', path: ROUTES.SETTINGS_PROFILE },
 ] as const
 
 const FOOTER_NAV = [
-  { label: 'Profile', icon: 'account_circle', danger: false },
+  { label: 'Profile', icon: 'account_circle', path: ROUTES.SETTINGS_PROFILE, danger: false },
   { label: 'Log Out', icon: 'logout', danger: true },
 ] as const
 
@@ -40,11 +40,16 @@ export function DashboardSidebar() {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useAppDispatch()
+  const impersonationSource = useAppSelector((state) => state.auth.impersonationSource)
   const isSuperadmin = useIsSuperadmin()
   const navItems = isSuperadmin ? ADMIN_NAV_ITEMS : TENANT_NAV_ITEMS
   async function handleLogout() {
     await dispatch(logout())
     navigate(ROUTES.LOGIN, { replace: true })
+  }
+  function handleBackToAdmin() {
+    dispatch(restoreImpersonatorSession())
+    navigate(ROUTES.ADMIN_DASHBOARD, { replace: true })
   }
 
   return (
@@ -120,10 +125,32 @@ export function DashboardSidebar() {
       <Divider sx={{ mx: 1.5 }} />
 
       <List sx={{ px: 1.5, py: 1 }}>
+        {impersonationSource ? (
+          <ListItemButton
+            onClick={handleBackToAdmin}
+            sx={{
+              py: 1.5,
+              px: 2,
+              borderRadius: 2,
+              mb: 0.5,
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+              <MaterialSymbol name="arrow_back" sx={{ fontSize: 22 }} />
+            </ListItemIcon>
+            <ListItemText primary={<Typography variant="bodyMd">Back to Admin</Typography>} />
+          </ListItemButton>
+        ) : null}
         {FOOTER_NAV.map((item) => (
           <ListItemButton
             key={item.label}
-            onClick={item.danger ? () => void handleLogout() : undefined}
+            onClick={
+              item.danger
+                ? () => void handleLogout()
+                : 'path' in item && item.path
+                  ? () => navigate(item.path)
+                  : undefined
+            }
             sx={{
               py: 1.5,
               px: 2,

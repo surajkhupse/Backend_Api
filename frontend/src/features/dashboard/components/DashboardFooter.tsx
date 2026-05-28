@@ -12,6 +12,8 @@ export function DashboardFooter() {
         mt: 'auto',
         py: 4,
         px: { xs: 2, md: 4 },
+        bgcolor: 'background.paper',
+        color: 'text.primary',
         borderTop: 1,
         borderColor: 'border.subtle',
         display: 'flex',

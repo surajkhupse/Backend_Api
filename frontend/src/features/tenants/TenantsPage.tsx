@@ -15,7 +15,7 @@ import {
   impersonateTenant,
   listTenants,
 } from '../../store/slices/tenantSlice'
-import { setTokens } from '../../store/slices/authSlice'
+import { beginImpersonation } from '../../store/slices/authSlice'
 import type { TenantStatus } from '../../services/api/tenantsApi'
 import { MaterialSymbol } from '../../theme'
 import { layout } from '../../theme/tokens/spacing'
@@ -86,10 +86,9 @@ export function TenantsPage() {
     const result = await dispatch(impersonateTenant({ id }))
     if (impersonateTenant.fulfilled.match(result)) {
       dispatch(
-        setTokens({
+        beginImpersonation({
           accessToken: result.payload.accessToken,
           refreshToken: result.payload.refreshToken,
-          rememberMe: false,
         }),
       )
       setSuccessMessage(`Now impersonating "${name}"`)
