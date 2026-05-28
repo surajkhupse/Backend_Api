@@ -1,7 +1,8 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import User from '../users/user.model';
 import { normalizeEmail, findUserByEmail } from '../users/user.service';
 import { hashPassword, comparePassword } from '../../utils/bcrypt';
+import { isStrongPassword, PASSWORD_RULE_MESSAGE } from '../../utils/password';
 import { reply } from '../../utils/response';
 import {
   issueTokenPair,
@@ -33,13 +34,14 @@ import type { RegisterBodyDto, RegisteredUserDto } from '../users/user.types';
 import mongoose, { Types } from 'mongoose';
 import { IUser } from '../users/user.model';
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown error';
-}
-
-export const register = async (req: Request, res: Response): Promise<Response | void> => {
+export const register = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
     const { name, email: rawEmail, password } = req.body as RegisterBodyDto;
+    const trimmedPassword = typeof password === 'string' ? password.trim() : '';
+
+    if (!isStrongPassword(trimmedPassword)) {
+      return reply(res, 422, PASSWORD_RULE_MESSAGE);
+    }
 
     const email = normalizeEmail(rawEmail);
 
@@ -48,7 +50,7 @@ export const register = async (req: Request, res: Response): Promise<Response | 
       return reply(res, 409, 'User already exists');
     }
 
-    const hashedPassword = await hashPassword(password ?? '');
+    const hashedPassword = await hashPassword(trimmedPassword);
 
     user = await User.create({
       name,
@@ -60,11 +62,11 @@ export const register = async (req: Request, res: Response): Promise<Response | 
 
     return reply(res, 201, 'User created successfully', { user: user.toObject() as IUser });
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
-export const refresh = async (req: Request, res: Response): Promise<Response | void> => {
+export const refresh = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
     const { refreshToken } = req.body as RefreshTokenBodyDto;
     if (!refreshToken || typeof refreshToken !== 'string') {
@@ -81,25 +83,33 @@ export const refresh = async (req: Request, res: Response): Promise<Response | v
   }
 };
 
-export const listSessions = async (req: Request, res: Response): Promise<Response | void> => {
+export const listSessions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   try {
     const sessions = await listSessionsForUser(req.authUserId!);
     return reply(res, 200, 'OK', { sessions });
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
-export const logoutAllDevices = async (req: Request, res: Response): Promise<Response | void> => {
+export const logoutAllDevices = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   try {
     await revokeAllRefreshTokensForUser(req.authUserId!);
     return reply(res, 200, 'Signed out from all devices');
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
-export const logout = async (req: Request, res: Response): Promise<Response | void> => {
+export const logout = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
     const { refreshToken } = req.body as LogoutBodyDto;
     if (!refreshToken || typeof refreshToken !== 'string') {
@@ -108,11 +118,11 @@ export const logout = async (req: Request, res: Response): Promise<Response | vo
     await revokeRefreshToken(refreshToken);
     return reply(res, 200, 'Signed out');
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<Response | void> => {
+export const login = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
   try {
     const { email: rawEmail, password } = req.body as LoginBodyDto;
 
@@ -189,7 +199,7 @@ export const login = async (req: Request, res: Response): Promise<Response | voi
     appendAuditLog({ action: 'LOGIN_SUCCESS', req, userId: user._id });
     return reply(res, 200, 'Signed in successfully', data);
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
@@ -197,7 +207,11 @@ const FORGOT_PASSWORD_MESSAGE =
   "If an account exists for that email, we've sent reset instructions.";
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
 
-export const forgotPassword = async (req: Request, res: Response): Promise<Response | void> => {
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   try {
     const email = normalizeEmail((req.body as ForgotPasswordBodyDto).email);
     if (!email) {
@@ -220,21 +234,26 @@ export const forgotPassword = async (req: Request, res: Response): Promise<Respo
 
     return reply(res, 200, FORGOT_PASSWORD_MESSAGE);
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
-export const resetPassword = async (req: Request, res: Response): Promise<Response | void> => {
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   try {
     const { token, password } = req.body as ResetPasswordBodyDto;
     if (!token || typeof token !== 'string') {
       return reply(res, 422, 'Reset token is required');
     }
     if (!password || typeof password !== 'string') {
-      return reply(res, 422, 'New password is required');
+      return reply(res, 422, PASSWORD_RULE_MESSAGE);
     }
-    if (password.length < 8) {
-      return reply(res, 422, 'Password must be at least 8 characters');
+    const trimmedPassword = password.trim();
+    if (!isStrongPassword(trimmedPassword)) {
+      return reply(res, 422, PASSWORD_RULE_MESSAGE);
     }
 
     const hashedToken = hashToken(token.trim());
@@ -246,7 +265,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<Respon
       return reply(res, 400, 'Invalid or expired reset token');
     }
 
-    user.password = await hashPassword(password);
+    user.password = await hashPassword(trimmedPassword);
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     user.failedLoginAttempts = 0;
@@ -256,11 +275,15 @@ export const resetPassword = async (req: Request, res: Response): Promise<Respon
 
     return reply(res, 200, 'Password has been reset successfully');
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };
 
-export const listMyAuditLogs = async (req: Request, res: Response): Promise<Response | void> => {
+export const listMyAuditLogs = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   try {
     const raw = Number(req.query.limit);
     const limit = Number.isFinite(raw) && raw > 0 ? Math.min(Math.floor(raw), 100) : 50;
@@ -301,6 +324,6 @@ export const listMyAuditLogs = async (req: Request, res: Response): Promise<Resp
 
     return reply(res, 200, 'OK', { logs });
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };

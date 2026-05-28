@@ -1,22 +1,24 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { reply } from "../../utils/response";
 import User from "../users/user.model";
 import { createTenant, listTenants, getTenant, updateTenantStatus, deleteTenant } from "./tenant.service";
 import { TenantStatus } from "./tenant.model";
 import type { UserRole } from "../users/user.model";
+import { hashPassword } from "../../utils/bcrypt";
+import { isStrongPassword, PASSWORD_RULE_MESSAGE } from "../../utils/password";
+import { findUserByEmail, normalizeEmail } from "../users/user.service";
+import { getClientIp, issueTokenPair } from "../auth/auth.service";
 
-function errorMessage(error: unknown): string {
-    return error instanceof Error ? error.message : "Unknown error";
-}
-
-export const create = async (req: Request, res: Response): Promise<Response | void> => {
+export const create = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
    try {
-    const { name, domain, status, ownerEmail, ownerId } = req.body as {
+    const { name, domain, status, ownerEmail, ownerId, password, confirmPassword } = req.body as {
       name?: string;
       domain?: string;
       status?: string;
       ownerEmail?: string;
       ownerId?: string;
+      password?: string;
+      confirmPassword?: string;
     };
 
     const trimmedName = name?.trim();
@@ -30,21 +32,49 @@ export const create = async (req: Request, res: Response): Promise<Response | vo
 
     const authRole = req.authRole as UserRole | undefined;
     let resolvedOwnerId = req.authUserId!;
+    if (authRole !== "superadmin" && (password?.trim() || confirmPassword?.trim())) {
+      return reply(res, 403, "Only superadmin can set owner credentials");
+    }
 
     if (ownerEmail?.trim() || ownerId?.trim()) {
       if (authRole !== "superadmin") {
         return reply(res, 403, "Only superadmin can assign a tenant owner");
       }
       if (ownerEmail?.trim()) {
-        const owner = await User.findOne({ email: ownerEmail.trim().toLowerCase() });
-        if (!owner) {
-          return reply(res, 404, "Owner user not found for that email");
+        const normalizedOwnerEmail = normalizeEmail(ownerEmail);
+        if (!normalizedOwnerEmail) {
+          return reply(res, 400, "Owner email is invalid");
         }
-        if (owner.role === "superadmin") {
-          return reply(res, 400, "Superadmin cannot be assigned as tenant owner");
+
+        const existingOwner = await findUserByEmail(normalizedOwnerEmail);
+        if (existingOwner) {
+          return reply(res, 409, "Owner user already exists for that email");
         }
+
+        const trimmedPassword = password?.trim() ?? "";
+        const trimmedConfirmPassword = confirmPassword?.trim() ?? "";
+        if (!trimmedPassword || !trimmedConfirmPassword) {
+          return reply(res, 422, PASSWORD_RULE_MESSAGE);
+        }
+        if (!isStrongPassword(trimmedPassword)) {
+          return reply(res, 422, PASSWORD_RULE_MESSAGE);
+        }
+        if (trimmedPassword !== trimmedConfirmPassword) {
+          return reply(res, 422, PASSWORD_RULE_MESSAGE);
+        }
+
+        const hashedPassword = await hashPassword(trimmedPassword);
+        const owner = await User.create({
+          name: `${trimmedName} Admin`,
+          email: normalizedOwnerEmail,
+          password: hashedPassword,
+          role: "member",
+        });
         resolvedOwnerId = owner._id;
       } else if (ownerId?.trim()) {
+        if (password?.trim() || confirmPassword?.trim()) {
+          return reply(res, 400, "Password fields are only allowed with ownerEmail");
+        }
         const owner = await User.findById(ownerId.trim());
         if (!owner) {
           return reply(res, 404, "Owner user not found");
@@ -70,33 +100,30 @@ export const create = async (req: Request, res: Response): Promise<Response | vo
     });
     return reply(res, 201, "Tenant created", { tenant });
    } catch (error) {
-    if (error instanceof Error && error.message.includes("duplicate key")) {
-      return reply(res, 409, "Tenant name or domain already exists");
-    }
-    return reply(res, 500, errorMessage(error));
+    return next(error);
    }
 }
 
-export const list = async (req: Request, res: Response): Promise<Response | void> => {
+export const list = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     try {
         const tenants = await listTenants();
         return reply(res, 200, "Tenants listed", { tenants });
     } catch (error) {
-        return reply(res, 500, errorMessage(error));
+        return next(error);
     }
 }
 
-export const getById = async (req: Request, res: Response) => {
+export const getById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const tenant = await getTenant(req.params.id as string);
         if(!tenant) { return reply(res, 404, "Tenant not found"); }
         return reply(res, 200, "Tenant found", { tenant });
     } catch (error) {
-        return reply(res, 500, errorMessage(error));
+        return next(error);
     }
 }
 
-export const changedStatus = async (req: Request, res: Response) => {
+export const changedStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { status } = req.body as { status? : string};
         if(!status || !['active', 'inactive', 'suspended'].includes(status)) {
@@ -106,16 +133,39 @@ export const changedStatus = async (req: Request, res: Response) => {
         if(!tenant) { return reply(res, 404, "Tenant not found"); }
         return reply(res, 200, "Tenant status changed", { tenant });
     } catch (error) {
-        return reply(res, 500, errorMessage(error));
+        return next(error);
     }
 }
 
-export const deleteById = async (req: Request, res: Response) => {
+export const deleteById = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const tenant = await deleteTenant(req.params.id as string);
         if(!tenant) { return reply(res, 404, "Tenant not found"); }
         return reply(res, 200, "Tenant deleted", { tenant });
     } catch (error) {
-        return reply(res, 500, errorMessage(error));
+        return next(error);
+    }
+}
+
+export const impersonateById = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const tenant = await getTenant(req.params.id as string);
+        if (!tenant) {
+            return reply(res, 404, "Tenant not found");
+        }
+
+        const owner = await User.findById(tenant.owner);
+        if (!owner) {
+            return reply(res, 404, "Tenant owner not found");
+        }
+
+        const data = await issueTokenPair(owner._id, {
+            deviceName: "Tenant impersonation",
+            ipAddress: getClientIp(req),
+        });
+
+        return reply(res, 200, "Tenant impersonation started", data);
+    } catch (error) {
+        return next(error);
     }
 }

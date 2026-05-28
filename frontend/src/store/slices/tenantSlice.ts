@@ -3,8 +3,10 @@ import {
   changeTenantStatusApi,
   createTenantApi,
   deleteTenantApi,
+  impersonateTenantApi,
   listTenantsApi,
   type CreateTenantBody,
+  type TenantImpersonationTokens,
   type TenantRecord,
   type TenantStatus,
 } from '../../services/api/tenantsApi'
@@ -17,7 +19,6 @@ export interface TenantState {
   currentItem: Tenant | null
   loading: boolean
   error: string | null
-  /** Row-level actions (status change / delete) */
   actionTenantId: string | null
 }
 
@@ -77,6 +78,18 @@ export const deleteTenant = createAsyncThunk<string, { id: string }, { rejectVal
     }
   },
 )
+
+export const impersonateTenant = createAsyncThunk<
+  TenantImpersonationTokens,
+  { id: string },
+  { rejectValue: string }
+>('tenant/impersonateTenant', async ({ id }, { rejectWithValue }) => {
+  try {
+    return await impersonateTenantApi(id)
+  } catch (err) {
+    return rejectWithValue(extractApiError(err, 'Failed to impersonate tenant'))
+  }
+})
 
 export const tenantSlice = createSlice({
   name: 'tenant',
@@ -139,6 +152,17 @@ export const tenantSlice = createSlice({
       .addCase(deleteTenant.rejected, (state, action) => {
         state.actionTenantId = null
         state.error = action.payload ?? 'Failed to delete tenant'
+      })
+      .addCase(impersonateTenant.pending, (state, action) => {
+        state.actionTenantId = action.meta.arg.id
+        state.error = null
+      })
+      .addCase(impersonateTenant.fulfilled, (state) => {
+        state.actionTenantId = null
+      })
+      .addCase(impersonateTenant.rejected, (state, action) => {
+        state.actionTenantId = null
+        state.error = action.payload ?? 'Failed to impersonate tenant'
       })
   },
 })

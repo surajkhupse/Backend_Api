@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { PASSWORD_REGEX, PASSWORD_RULE_MESSAGE } from '../../utils/passwordValidation'
 
 export const registerFormSchema = z.object({
   fullName: z
@@ -23,11 +24,7 @@ export const registerFormSchema = z.object({
     .pipe(
       z
         .string()
-        .min(8, 'Password must be at least 8 characters')
-        .regex(/[a-z]/, 'Include a lowercase letter')
-        .regex(/[A-Z]/, 'Include an uppercase letter')
-        .regex(/[0-9]/, 'Include a number')
-        .regex(/[^a-zA-Z0-9]/, 'Include a special character'),
+        .regex(PASSWORD_REGEX, PASSWORD_RULE_MESSAGE),
     ),
   acceptTerms: z.boolean().refine((value) => value === true, {
     message: 'You must accept the terms to continue',

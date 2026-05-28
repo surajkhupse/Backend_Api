@@ -18,6 +18,7 @@ function parseCliArgs() {
     else if (args[i] === '--register' || args[i] === '-r') opts.register = true
     else if (args[i] === '--no-register') opts.register = false
     else if (args[i] === '--force' || args[i] === '-f') opts.force = true
+    else if (args[i] === '--overwrite-custom') opts.overwriteCustom = true
     else if (args[i] === '--help' || args[i] === '-h') {
       printUsage()
       process.exit(0)
@@ -37,6 +38,7 @@ function printUsage() {
     -r, --register        Auto-register in store.ts (default when interactive: ask)
         --no-register     Skip store.ts registration
     -f, --force           Regenerate even if service hasn't changed
+        --overwrite-custom Allow overwriting non-generated slices
     -h, --help            Show this help
 
   By default, only creates/updates slices whose API service file has changed
@@ -395,6 +397,13 @@ function processModule(selected, cli) {
 
   if (fs.existsSync(outFile) && !cli.force) {
     const existingHash = readEmbeddedHash(outFile)
+    if (!existingHash) {
+      if (!cli.overwriteCustom) {
+        console.log(`  [skip]      ${sliceName}Slice.ts — custom file (use --overwrite-custom to replace)`)
+        return false
+      }
+      console.log(`  [replace]   ${sliceName}Slice.ts — overwriting custom file by request`)
+    }
     if (existingHash === currentHash) {
       console.log(`  [unchanged] ${sliceName}Slice.ts — service not modified`)
       return false

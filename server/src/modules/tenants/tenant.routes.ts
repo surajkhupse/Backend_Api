@@ -1,7 +1,7 @@
 import express from "express";
 import { authenticate } from "../../middlewares/auth.middleware";
 import { authorize } from "../../middlewares/role.middleware";
-import { create, list, getById, changedStatus, deleteById } from "./tenant.controller";
+import { create, list, getById, changedStatus, deleteById, impersonateById } from "./tenant.controller";
 
 const router = express.Router();
 
@@ -36,6 +36,14 @@ const router = express.Router();
  *                 type: string
  *                 format: email
  *                 description: Tenant owner user email (required when superadmin creates)
+ *               password:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: Required with ownerEmail when creating owner account
+ *               confirmPassword:
+ *                 type: string
+ *                 minLength: 8
+ *                 description: Must match password
  *               ownerId:
  *                 type: string
  *                 description: Tenant owner user id (alternative to ownerEmail)
@@ -122,6 +130,31 @@ router.get('/:id', authenticate, authorize('tenants:read_any'), getById);
  *         description: Tenant not found
  */
 router.put('/:id/status', authenticate, authorize('tenants:suspend'), changedStatus);
+
+/**
+ * @openapi
+ * /api/tenants/{id}/impersonate:
+ *   post:
+ *     tags: [Tenants]
+ *     summary: Impersonate tenant owner (superadmin only)
+ *     operationId: impersonateTenant
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Access + refresh tokens for tenant owner
+ *       404:
+ *         description: Tenant or tenant owner not found
+ *       403:
+ *         description: Forbidden
+ */
+router.post('/:id/impersonate', authenticate, authorize('tenants:impersonate'), impersonateById);
 
 /**
  * @openapi

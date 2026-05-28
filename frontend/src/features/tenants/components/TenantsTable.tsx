@@ -19,6 +19,7 @@ type TenantsTableProps = {
   actionTenantId: string | null
   onChangeStatus: (id: string, status: TenantStatus) => void
   onDelete: (id: string, name: string) => void
+  onImpersonate?: (id: string, name: string) => void
   showActions?: boolean
 }
 
@@ -33,17 +34,18 @@ export function TenantsTable({
   actionTenantId,
   onChangeStatus,
   onDelete,
+  onImpersonate,
   showActions = true,
 }: TenantsTableProps) {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
   const [menuTenant, setMenuTenant] = useState<TenantRecord | null>(null)
 
-  function openStatusMenu(event: React.MouseEvent<HTMLElement>, tenant: TenantRecord) {
+  function openActionMenu(event: React.MouseEvent<HTMLElement>, tenant: TenantRecord) {
     setMenuAnchor(event.currentTarget)
     setMenuTenant(tenant)
   }
 
-  function closeStatusMenu() {
+  function closeActionMenu() {
     setMenuAnchor(null)
     setMenuTenant(null)
   }
@@ -52,7 +54,21 @@ export function TenantsTable({
     if (menuTenant) {
       onChangeStatus(menuTenant._id, status)
     }
-    closeStatusMenu()
+    closeActionMenu()
+  }
+
+  function handleImpersonate() {
+    if (menuTenant && onImpersonate) {
+      onImpersonate(menuTenant._id, menuTenant.name)
+    }
+    closeActionMenu()
+  }
+
+  function handleDeleteClick() {
+    if (menuTenant) {
+      onDelete(menuTenant._id, menuTenant.name)
+    }
+    closeActionMenu()
   }
 
   if (tenants.length === 0) {
@@ -108,28 +124,15 @@ export function TenantsTable({
                   </TableCell>
                   {showActions ? (
                     <TableCell align="right">
-                      <Tooltip title="Change status">
+                      <Tooltip title="More actions">
                         <span>
                           <IconButton
                             size="small"
                             disabled={isBusy}
-                            onClick={(e) => openStatusMenu(e, tenant)}
-                            aria-label={`Change status for ${tenant.name}`}
+                            onClick={(e) => openActionMenu(e, tenant)}
+                            aria-label={`More actions for ${tenant.name}`}
                           >
-                            <MaterialSymbol name="sync_alt" sx={{ fontSize: 20 }} />
-                          </IconButton>
-                        </span>
-                      </Tooltip>
-                      <Tooltip title="Delete tenant">
-                        <span>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            disabled={isBusy}
-                            onClick={() => onDelete(tenant._id, tenant.name)}
-                            aria-label={`Delete ${tenant.name}`}
-                          >
-                            <MaterialSymbol name="delete" sx={{ fontSize: 20 }} />
+                            <MaterialSymbol name="more_vert" sx={{ fontSize: 20 }} />
                           </IconButton>
                         </span>
                       </Tooltip>
@@ -142,10 +145,16 @@ export function TenantsTable({
         </Table>
       </TableContainer>
 
-      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeStatusMenu}>
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={closeActionMenu}>
+        <MenuItem onClick={handleImpersonate} disabled={!onImpersonate}>
+          Impersonate tenant
+        </MenuItem>
         <MenuItem onClick={() => handleStatusPick('active')}>Set active</MenuItem>
         <MenuItem onClick={() => handleStatusPick('inactive')}>Set inactive</MenuItem>
         <MenuItem onClick={() => handleStatusPick('suspended')}>Set suspended</MenuItem>
+        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+          Delete tenant
+        </MenuItem>
       </Menu>
     </>
   )

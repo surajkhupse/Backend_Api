@@ -1,6 +1,6 @@
 import { OAuth2Client } from 'google-auth-library';
 import crypto from 'crypto';
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import User from '../users/user.model';
 import { normalizeEmail, findUserByEmail } from '../users/user.service';
 import { reply } from '../../utils/response';
@@ -8,10 +8,6 @@ import { issueTokenPair, getClientIp, appendAuditLog } from './auth.service';
 
 const STATE_COOKIE = 'google_oauth_state';
 const STATE_MAX_AGE_MS = 10 * 60 * 1000;
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown error';
-}
 
 function getGoogleOAuthClient(): OAuth2Client | null {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -57,7 +53,11 @@ export const googleSsoStart = (req: Request, res: Response): Response | void => 
   return res.redirect(302, authorizeUrl);
 };
 
-export const googleSsoCallback = async (req: Request, res: Response): Promise<Response | void> => {
+export const googleSsoCallback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<Response | void> => {
   const client = getGoogleOAuthClient();
   if (!client) {
     return reply(res, 503, 'Google SSO is not configured');
@@ -135,6 +135,6 @@ export const googleSsoCallback = async (req: Request, res: Response): Promise<Re
 
     return res.redirect(302, frontendSuccessUrl(data.accessToken));
   } catch (error) {
-    return reply(res, 500, errorMessage(error));
+    return next(error);
   }
 };

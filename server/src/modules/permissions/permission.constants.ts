@@ -8,6 +8,7 @@ export const PERMISSIONS = {
   'tenants:update':   ['superadmin', 'tenant_admin'],
   'tenants:delete':   ['superadmin'],
   'tenants:suspend':  ['superadmin'],
+  'tenants:impersonate': ['superadmin'],
 
   // User management
   'users:read_self':   ['superadmin', 'tenant_admin', 'member', 'viewer'],

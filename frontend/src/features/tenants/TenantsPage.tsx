@@ -12,11 +12,15 @@ import {
   changeTenantStatus,
   clearTenantError,
   deleteTenant,
+  impersonateTenant,
   listTenants,
 } from '../../store/slices/tenantSlice'
+import { setTokens } from '../../store/slices/authSlice'
 import type { TenantStatus } from '../../services/api/tenantsApi'
 import { MaterialSymbol } from '../../theme'
 import { layout } from '../../theme/tokens/spacing'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../routes/paths'
 import { CreateTenantDialog } from './components/CreateTenantDialog'
 import { TenantsFilters, type TenantStatusFilter } from './components/TenantsFilters'
 import { TenantsStatCards } from './components/TenantsStatCards'
@@ -24,6 +28,7 @@ import { TenantsTable } from './components/TenantsTable'
 
 export function TenantsPage() {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const { items, loading, error, actionTenantId } = useAppSelector((state) => state.tenants)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [search, setSearch] = useState('')
@@ -74,6 +79,21 @@ export function TenantsPage() {
     const result = await dispatch(deleteTenant({ id }))
     if (deleteTenant.fulfilled.match(result)) {
       setSuccessMessage(`Tenant "${name}" deleted`)
+    }
+  }
+
+  async function handleImpersonate(id: string, name: string) {
+    const result = await dispatch(impersonateTenant({ id }))
+    if (impersonateTenant.fulfilled.match(result)) {
+      dispatch(
+        setTokens({
+          accessToken: result.payload.accessToken,
+          refreshToken: result.payload.refreshToken,
+          rememberMe: false,
+        }),
+      )
+      setSuccessMessage(`Now impersonating "${name}"`)
+      navigate(ROUTES.TENANT_DASHBOARD)
     }
   }
 
@@ -172,6 +192,7 @@ export function TenantsPage() {
             actionTenantId={actionTenantId}
             onChangeStatus={handleChangeStatus}
             onDelete={handleDelete}
+            onImpersonate={handleImpersonate}
           />
         )}
       </Paper>
