@@ -10,6 +10,7 @@ const MuiTypography: Components<Theme>['MuiTypography'] = {
       bodyLg: 'p',
       bodyMd: 'p',
       bodySm: 'p',
+      titleMd: 'h3',
       labelMd: 'span',
       labelSm: 'span',
       mono: 'span',

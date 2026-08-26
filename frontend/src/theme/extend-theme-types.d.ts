@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 import type {} from '@mui/material/themeCssVarsAugmentation'
 
 import type { CustomShadows } from './core/custom-shadows'
@@ -54,6 +55,7 @@ declare module '@mui/material/styles' {
     bodyLg: CSSProperties
     bodyMd: CSSProperties
     bodySm: CSSProperties
+    titleMd: CSSProperties
     labelMd: CSSProperties
     labelSm: CSSProperties
     mono: CSSProperties
@@ -65,6 +67,7 @@ declare module '@mui/material/styles' {
     bodyLg?: CSSProperties
     bodyMd?: CSSProperties
     bodySm?: CSSProperties
+    titleMd?: CSSProperties
     labelMd?: CSSProperties
     labelSm?: CSSProperties
     mono?: CSSProperties
@@ -90,6 +93,7 @@ declare module '@mui/material/Typography' {
     bodyLg: true
     bodyMd: true
     bodySm: true
+    titleMd: true
     labelMd: true
     labelSm: true
     mono: true

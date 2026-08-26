@@ -79,6 +79,12 @@ export const typography: TypographyVariantsOptions = {
   bodyLg: { fontSize: pxToRem(fontSizes.bodyLg), lineHeight: '24px', fontWeight: 400 },
   bodyMd: { fontSize: pxToRem(fontSizes.bodyMd), lineHeight: '20px', fontWeight: 400 },
   bodySm: { fontSize: pxToRem(fontSizes.bodySm), lineHeight: '16px', fontWeight: 400 },
+  titleMd: {
+    fontFamily: geist,
+    fontWeight: 600,
+    fontSize: pxToRem(fontSizes.bodyLg),
+    lineHeight: '24px',
+  },
   labelMd: {
     fontFamily: geist,
     fontWeight: 500,

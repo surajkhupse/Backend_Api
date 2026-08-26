@@ -52,24 +52,32 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
   useEffect(() => {
     if (authError) {
+      let nextToastMessage: string
+      let nextToastSeverity: 'error' | 'warning'
+      let nextToastDetail: string | undefined
+
       if (accountLocked) {
         const lockUntil = accountLocked.lockUntil
-        setToastMessage(accountLocked.message ?? 'Account temporarily locked.')
-        setToastSeverity('warning')
-        setToastDetail(
-          lockUntil
-            ? `Unlocks after ${new Date(lockUntil).toLocaleString(undefined, {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              })}`
-            : undefined,
-        )
+        nextToastMessage = accountLocked.message ?? 'Account temporarily locked.'
+        nextToastSeverity = 'warning'
+        nextToastDetail = lockUntil
+          ? `Unlocks after ${new Date(lockUntil).toLocaleString(undefined, {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            })}`
+          : undefined
       } else {
-        setToastMessage(authError)
-        setToastSeverity('error')
-        setToastDetail(undefined)
+        nextToastMessage = authError
+        nextToastSeverity = 'error'
+        nextToastDetail = undefined
       }
-      setToastOpen(true)
+
+      queueMicrotask(() => {
+        setToastMessage(nextToastMessage)
+        setToastSeverity(nextToastSeverity)
+        setToastDetail(nextToastDetail)
+        setToastOpen(true)
+      })
     }
   }, [authError, accountLocked])
 

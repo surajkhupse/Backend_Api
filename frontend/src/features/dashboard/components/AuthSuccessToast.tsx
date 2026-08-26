@@ -18,24 +18,23 @@ export function AuthSuccessToast() {
 
   useEffect(() => {
     const flash = consumeAuthFlash()
+    const state = location.state as AuthLocationState | null
+    let nextMessage = ''
     if (flash === 'register') {
-      setMessage('Account created. You are signed in.')
-      setOpen(true)
-      return
-    }
-    if (flash === 'login') {
-      setMessage('Signed in successfully. Welcome back!')
-      setOpen(true)
-      return
+      nextMessage = 'Account created. You are signed in.'
+    } else if (flash === 'login') {
+      nextMessage = 'Signed in successfully. Welcome back!'
+    } else if (state?.registerSuccess) {
+      nextMessage = 'Account created. You are signed in.'
+    } else if (state?.loginSuccess) {
+      nextMessage = 'Signed in successfully. Welcome back!'
     }
 
-    const state = location.state as AuthLocationState | null
-    if (state?.registerSuccess) {
-      setMessage('Account created. You are signed in.')
-      setOpen(true)
-    } else if (state?.loginSuccess) {
-      setMessage('Signed in successfully. Welcome back!')
-      setOpen(true)
+    if (nextMessage) {
+      queueMicrotask(() => {
+        setMessage(nextMessage)
+        setOpen(true)
+      })
     }
   }, [location.pathname, location.state])
 

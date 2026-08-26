@@ -31,6 +31,16 @@ import { USER_AVATAR_URL } from '../dashboard/constants/dashboard'
 
 const BIO_MAX = 250
 
+const EMPTY_PROFILE_FORM: ProfileFormState = {
+  name: '',
+  jobTitle: '',
+  bio: '',
+  avatar: '',
+  theme: 'light',
+  publicProfile: true,
+  usageData: false,
+}
+
 const SETTINGS_NAV = [
   { id: 'profile', label: 'Profile', icon: 'person' },
   { id: 'security', label: 'Security', icon: 'security', disabled: true },
@@ -172,23 +182,19 @@ export function ProfilePage() {
   const { data, loading, saving, error, saveSuccess } = useAppSelector((state) => state.profile)
   const { setMode } = useThemeMode()
 
-  const [form, setForm] = useState<ProfileFormState>({
-    name: '',
-    jobTitle: '',
-    bio: '',
-    avatar: '',
-    theme: 'light',
-    publicProfile: true,
-    usageData: false,
+  const [draft, setDraft] = useState<{
+    sourceData: typeof data
+    form: ProfileFormState
+  }>({
+    sourceData: null,
+    form: EMPTY_PROFILE_FORM,
   })
 
   useEffect(() => {
     dispatch(fetchMyProfile())
   }, [dispatch])
 
-  useEffect(() => {
-    if (data) setForm(profileToForm(data))
-  }, [data])
+  const form = data && draft.sourceData !== data ? profileToForm(data) : draft.form
 
   const avatarSrc = form.avatar.trim() || USER_AVATAR_URL
   const isDirty =
@@ -196,11 +202,20 @@ export function ProfilePage() {
     JSON.stringify(form) !== JSON.stringify(profileToForm(data))
 
   function patchForm(patch: Partial<ProfileFormState>) {
-    setForm((prev) => ({ ...prev, ...patch }))
+    setDraft((prev) => ({
+      sourceData: data,
+      form: {
+        ...(data && prev.sourceData !== data ? profileToForm(data) : prev.form),
+        ...patch,
+      },
+    }))
   }
 
   function handleDiscard() {
-    if (data) setForm(profileToForm(data))
+    setDraft({
+      sourceData: data,
+      form: data ? profileToForm(data) : EMPTY_PROFILE_FORM,
+    })
   }
 
   function handleThemeSelect(theme: 'light' | 'dark') {
@@ -302,9 +317,11 @@ export function ProfilePage() {
                   </ListItemIcon>
                   <ListItemText
                     primary={item.label}
-                    primaryTypographyProps={{
-                      variant: 'labelMd',
-                      sx: { fontWeight: active ? 700 : 500 },
+                    slotProps={{
+                      primary: {
+                        variant: 'labelMd',
+                        sx: { fontWeight: active ? 700 : 500 },
+                      },
                     }}
                   />
                 </ListItemButton>
@@ -403,14 +420,14 @@ export function ProfilePage() {
                 label="Display Name"
                 value={form.name}
                 onChange={(e) => patchForm({ name: e.target.value })}
-                inputProps={{ maxLength: 100 }}
+                slotProps={{ htmlInput: { maxLength: 100 } }}
                 fullWidth
               />
               <TextField
                 label="Job Title"
                 value={form.jobTitle}
                 onChange={(e) => patchForm({ jobTitle: e.target.value })}
-                inputProps={{ maxLength: 100 }}
+                slotProps={{ htmlInput: { maxLength: 100 } }}
                 fullWidth
               />
               <TextField

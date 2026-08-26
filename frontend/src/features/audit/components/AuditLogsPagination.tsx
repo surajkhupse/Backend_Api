@@ -2,19 +2,7 @@ import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import { MaterialSymbol } from '../../../theme'
-
-const PAGE_SIZE = 10
-
-export function getAuditLogPageCount(total: number): number {
-  return Math.max(1, Math.ceil(total / PAGE_SIZE))
-}
-
-export function paginateAuditLogs<T>(items: T[], page: number): T[] {
-  const start = (page - 1) * PAGE_SIZE
-  return items.slice(start, start + PAGE_SIZE)
-}
-
-export { PAGE_SIZE as AUDIT_LOG_PAGE_SIZE }
+import { AUDIT_LOG_PAGE_SIZE, getAuditLogPageCount } from '../utils/auditLogsPagination'
 
 export type AuditLogsPaginationProps = {
   page: number
@@ -24,8 +12,8 @@ export type AuditLogsPaginationProps = {
 
 export function AuditLogsPagination({ page, totalItems, onPageChange }: AuditLogsPaginationProps) {
   const pageCount = getAuditLogPageCount(totalItems)
-  const start = totalItems === 0 ? 0 : (page - 1) * PAGE_SIZE + 1
-  const end = Math.min(page * PAGE_SIZE, totalItems)
+  const start = totalItems === 0 ? 0 : (page - 1) * AUDIT_LOG_PAGE_SIZE + 1
+  const end = Math.min(page * AUDIT_LOG_PAGE_SIZE, totalItems)
 
   const pagesToShow: (number | '…')[] = (() => {
     if (pageCount <= 5) return Array.from({ length: pageCount }, (_, i) => i + 1)

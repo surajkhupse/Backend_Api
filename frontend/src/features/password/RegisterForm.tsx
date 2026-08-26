@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useState } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -31,13 +31,12 @@ function buildDisplayName(fullName: string, companyName: string): string {
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const dispatch = useAppDispatch()
   const { loading: authLoading, error: authError } = useAppSelector((state) => state.auth)
-  const [apiError, setApiError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerFormSchema),
@@ -50,14 +49,10 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
     },
   })
 
-  useEffect(() => {
-    if (authError) setApiError(authError)
-  }, [authError])
-
-  const passwordValue = watch('password') ?? ''
+  const passwordValue = useWatch({ control, name: 'password' }) ?? ''
+  const acceptTermsValue = useWatch({ control, name: 'acceptTerms' }) === true
 
   async function onSubmit(data: RegisterFormValues) {
-    setApiError(null)
     dispatch(clearAuthError())
     const result = await dispatch(registerUser({
       name: buildDisplayName(data.fullName, data.companyName),
@@ -87,9 +82,9 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
         </Typography>
       </Box>
 
-      {apiError && (
+      {authError && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          {apiError}
+          {authError}
         </Alert>
       )}
 
@@ -196,7 +191,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
                 <Checkbox
                   disabled={isSubmitting}
                   {...termsReg}
-                  checked={watch('acceptTerms') === true}
+                  checked={acceptTermsValue}
                 />
               }
               sx={{ alignItems: 'flex-start', m: 0 }}

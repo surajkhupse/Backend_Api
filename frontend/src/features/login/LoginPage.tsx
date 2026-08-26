@@ -4,7 +4,7 @@ import Button from '@mui/material/Button'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link as RouterLink, useNavigate, useSearchParams } from 'react-router-dom'
 import { TopRightToast } from '../../components/TopRightToast'
 import { useAuthRole } from '../auth/hooks/useAuthRole'
@@ -22,18 +22,12 @@ export function LoginPage() {
   const auth = useAppSelector((state) => state.auth.tokens)
   const role = useAuthRole()
   const sessionExpired = searchParams.get('session') === 'expired'
-  const [sessionToastOpen, setSessionToastOpen] = useState(sessionExpired)
+  const [sessionToastDismissed, setSessionToastDismissed] = useState(false)
 
   const hasSession = Boolean(auth?.accessToken)
   const homeRoute = hasSession
     ? getDashboardHomeRoute(auth!.accessToken, role)
     : ROUTES.HOME
-
-  useEffect(() => {
-    if (sessionExpired) {
-      setSessionToastOpen(true)
-    }
-  }, [sessionExpired])
 
   return (
     <Box
@@ -48,10 +42,10 @@ export function LoginPage() {
       })}
     >
       <TopRightToast
-        open={sessionToastOpen}
+        open={sessionExpired && !sessionToastDismissed}
         message="Your session expired. Please sign in again."
         severity="info"
-        onClose={() => setSessionToastOpen(false)}
+        onClose={() => setSessionToastDismissed(true)}
       />
 
       <Box sx={{ position: 'absolute', top: 16, right: 16, zIndex: 1 }}>
